@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>速美特图库管理系统</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+</head>
+<body>
+<div id="root" style="height: 100%">
+    <div style="background-image: url(https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr);background-size: cover;height: 100vh;display: flex;flex-direction: column;overflow: auto;background-color: #f0f2f5">
+        <p style="margin-top:100px;color: #333; font-size: 20px;font-weight: 300; display: flex;align-items: center;justify-content: center;height: 44px;line-height: 44px;">
+            欢迎使用速美特图库管理系统</p>
+        <div class="layui-container" style="width: 350px;">
+            <ul class="layui-form layui-form-pane" style="margin: 15px;">
+                <li class="layui-form-item">
+                    <input class="layui-input" lay-verify="required" name="username" placeholder="请输入用户名">
+                </li>
+                <li class="layui-form-item">
+                    <input class="layui-input" type="password" lay-verify="required" name="password"
+                           placeholder="请输入密码">
+                </li>
+                <li class="layui-form-item" style="text-align:center;">
+                    <button type="submit" lay-submit lay-filter="*" class="layui-btn" style="width: 100%;">登录</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
+<script src="/layui/layui.js"></script>
+<script>
+    layui.use(function () {
+        const layer = layui.layer;
+        var form = layui.form;
+        form.render().on('submit(*)', function (data) {
+            layer.msg(JSON.stringify(data.field), {icon: 1});
+            //layer.close(index); //关闭层
+        });
+        layui.$.ajax({
+            url: 'data', //提交接口
+            type: 'get',
+            success: function (res) {
+            },
+            error: function (mas, textStatus, errorThrown) {
+
+            }
+        });
+
+    });
+</script>
+</body>
+</html>
