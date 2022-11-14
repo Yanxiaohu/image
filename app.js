@@ -6,10 +6,12 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var conn = require('./config');
+const {login} = require('./config');
 var app = express();
+const bodyParser = require('body-parser');
 
-//写方法
+
+//写方法拉去数据
 app.get('/data', function (req, res) {
     conn.query('select * from user_info_list', (err, results) => {
         // mysql 模块工作期间报错了
@@ -20,6 +22,15 @@ app.get('/data', function (req, res) {
     })
 })
 
+//拦截所有请求
+//extends:true 方法内部使用第三方模块请求的参数
+app.use(bodyParser.urlencoded({ extends: false }))
+
+//写方法拉去数据
+app.post('/login', function (req, res) {
+    const {username,password} = req.body;
+    login(username,password,res);
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -52,6 +63,7 @@ app.use(function (err, req, res, next) {
 
 // 显示ip地址和端口
 const os = require('os');
+
 function getIPAddress() {
     const interfaces = os.networkInterfaces();
     for (const devName in interfaces) {

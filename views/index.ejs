@@ -25,6 +25,9 @@
                 </li>
             </ul>
         </div>
+        <div style="position: absolute;bottom: 35px;width: 100%">
+            <p style="text-align: center;"><span>Copyright © 2013 - <!-- -->2022<!-- --> <!-- -->速美特有限公司</span></p>
+        </div>
     </div>
 </div>
 
@@ -33,21 +36,23 @@
 <script>
     layui.use(function () {
         const layer = layui.layer;
-        var form = layui.form;
+        const form = layui.form;
         form.render().on('submit(*)', function (data) {
-            layer.msg(JSON.stringify(data.field), {icon: 1});
-            //layer.close(index); //关闭层
+            const loadStart = layer.load();
+            layui.$.ajax({
+                url: 'login', //提交接口
+                type: 'post',
+                data: data.field,
+                success: function (res) {
+                    layer.close(loadStart);
+                    layer.msg(JSON.stringify(res.message), {icon: res.code});
+                },
+                error: function (mas, textStatus, errorThrown) {
+                    layer.msg('网络错误，请联系管理员');
+                    layer.close(loadStart);
+                }
+            });
         });
-        layui.$.ajax({
-            url: 'data', //提交接口
-            type: 'get',
-            success: function (res) {
-            },
-            error: function (mas, textStatus, errorThrown) {
-
-            }
-        });
-
     });
 </script>
 </body>
