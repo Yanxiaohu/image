@@ -8,26 +8,25 @@ const bodyParser = require('body-parser');
 
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers} = require('./config');
+const {login, isLogin, getUsers, addUser} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
 
 app.post('/login', function (req, res) {
-    const {username, password} = req.body;
-    login(username, password, res);
+    login(req.body, res);
 })
 
 app.get('/isLogin', function (req, res) {
-    const {token} = req.query;
-    isLogin(token, res);
+    isLogin(req.query, res);
 })
 //写方法拉去数据
 app.get('/getUsers', function (req, res) {
-    const {page, limit} = req.body;
-    getUsers(page, limit, res);
+    getUsers(req.body, res);
 })
-
+app.post('/addUser', function (req, res) {
+    addUser(req.body, res);
+})
 // ------------------- 前端路由页面 ----------------------------//
 const {index, users, images} = require('./routes/index');
 // view engine setup
@@ -76,7 +75,7 @@ function getIPAddress() {
 console.log('速美特提醒您：');
 console.log('程序已正常启动......');
 console.log('点击一下网址即可预览效果');
-console.log('http://' + getIPAddress() + ':' + 8080)
+console.log('http://' + getIPAddress() + ':' + 8081)
 
 
 module.exports = app;
