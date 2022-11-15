@@ -36,19 +36,36 @@
 <script>
     layui.use(function () {
         const layer = layui.layer;
+
+        layui.$.ajax({
+            url: '/isLogin', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token')},
+            success: function (res) {
+                if (res.code == 1)  {
+                    window.location.href = '/images';
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.msg('网络错误，请联系管理员');
+                layer.close(loadStart);
+            }
+        });
+
+
         const form = layui.form;
         form.render().on('submit(*)', function (data) {
             const loadStart = layer.load();
             layui.$.ajax({
-                url: 'login', //提交接口
+                url: '/login', //提交接口
                 type: 'post',
                 data: data.field,
                 success: function (res) {
                     layer.close(loadStart);
                     layer.msg(JSON.stringify(res.message), {icon: res.code});
                     if (res.code == 1) {
-                        console.log(res.token);
                         localStorage.setItem('token',res.token)
+                        document.location.href='/images';
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+</head>
+<body>
+<div>
+    <ul class="layui-nav">
+        <li class="layui-nav-item"><a href="/images">图库</a></li>
+        <li class="layui-nav-item layui-this"><a href="/users">用户</a></li>
+        <li class="layui-nav-item" style="float: right">
+            <a href="javascript:;"><span id="username"></span></a>
+            <dl class="layui-nav-child">
+                <dd><a id="logoutBtn">退出登录</a></dd>
+            </dl>
+        </li>
+    </ul>
+</div>
+
+<!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
+<script src="/layui/layui.js"></script>
+<script>
+    layui.use(function () {
+        const layer = layui.layer;
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/isLogin', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token')},
+            success: function (res) {
+                layer.close(loadStart);
+                if (res.code != 1) {
+                    layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
+                        window.location.href = '/';
+                    });
+                } else {
+                    document.getElementById('username').innerText = res.username;
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.msg('网络错误，请联系管理员');
+                layer.close(loadStart);
+            }
+        });
+        document.getElementById('logoutBtn').onclick = function () {
+            layer.open({
+                title: '',
+                content: '确认推出登录吗？',
+                yes: function (index) {
+                    localStorage.setItem('token', '');
+                    window.location.href = '/';
+                    layer.close(index);
+                },
+            });
+        }
+    });
+</script>
+
+</script>
+</body>
+</html>

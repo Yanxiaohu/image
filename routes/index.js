@@ -7,7 +7,11 @@ const index = router.get('/', function (req, res, next) {
 });
 
 const users = router.get('/users', function (req, res, next) {
-    res.send('respond with a resource');
+    res.render('users', {title: 'Express'});
 });
 
-module.exports = {index, users};
+const images = router.get('/images', function (req, res, next) {
+    res.render('images', {title: 'Express'});
+});
+
+module.exports = {index, users, images};
