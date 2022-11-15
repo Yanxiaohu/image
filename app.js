@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin} = require('./config');
+const {login, isLogin, getUsers} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -23,14 +23,9 @@ app.get('/isLogin', function (req, res) {
     isLogin(token, res);
 })
 //写方法拉去数据
-app.get('/data', function (req, res) {
-    conn.query('select * from user_info_list', (err, results) => {
-        // mysql 模块工作期间报错了
-        if (err) return console.log(err.message)
-        // 能够成功的执行 SQL 语句
-        console.log(results);
-        res.send(results);
-    })
+app.get('/getUsers', function (req, res) {
+    const {page, limit} = req.body;
+    getUsers(page, limit, res);
 })
 
 // ------------------- 前端路由页面 ----------------------------//

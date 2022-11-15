@@ -18,6 +18,7 @@
             </dl>
         </li>
     </ul>
+    <table id="demo" lay-filter="test"></table>
 </div>
 
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
@@ -57,8 +58,22 @@
             });
         }
     });
-</script>
+    layui.use('table', function () {
+        var table = layui.table;
 
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            , url: '/getUsers' //数据接口
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'ID'}
+                , {field: 'username', title: '用户名'}
+                , {field: 'name', title: '用户类型'}
+            ]]
+        });
+
+    });
 </script>
 </body>
 </html>

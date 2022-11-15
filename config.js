@@ -61,4 +61,21 @@ const isLogin = function (token, res) {
     })
 }
 
-module.exports = {login, isLogin};
+const getUsers = function (page, limit, res) {
+    conn.query('select id,username,name from user_info_list', (err, results) => {
+        if (err) return console.log(err.message)
+        conn.query('select count(*) count from user_info_list', (err, count) => {
+            if (err) return console.log(err.message)
+            let result = {};
+            result = {
+                code: 0,
+                count:count[0].count,
+                data: results,
+                message: '数据获取成功',
+            }
+            res.send(result);
+        })
+    })
+}
+
+module.exports = {login, isLogin, getUsers};
