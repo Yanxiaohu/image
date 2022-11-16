@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser} = require('./config');
+const {login, isLogin, getUsers, addUser,delUser} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -22,10 +22,13 @@ app.get('/isLogin', function (req, res) {
 })
 //写方法拉去数据
 app.get('/getUsers', function (req, res) {
-    getUsers(req.body, res);
+    getUsers(req.query, res);
 })
 app.post('/addUser', function (req, res) {
     addUser(req.body, res);
+})
+app.post('/delUser', function (req, res) {
+    delUser(req.body, res);
 })
 // ------------------- 前端路由页面 ----------------------------//
 const {index, users, images} = require('./routes/index');

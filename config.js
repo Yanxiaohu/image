@@ -11,19 +11,20 @@ const login = function (body, res) {
     const {username, password} = body;
     conn.query('select * from user_info_list where username =? AND password =?', [username, password], (err, results) => {
         if (err) return console.log(err.message)
-        const cache = results[0];
         let result = {};
-        const token = JSON.stringify({
-            username,
-            type: cache.type,
-            time: new Date().getTime()
-        });
         if (results.length == 0) {
             result = {
                 code: 0,
                 message: '用户名密码错误',
             }
         } else {
+            const cache = results[0];
+            const token = JSON.stringify({
+                username,
+                id: cache.id,
+                usertype: cache.usertype,
+                time: new Date().getTime()
+            });
             result = {
                 code: 1,
                 message: '用户名密码正确',
@@ -44,7 +45,7 @@ const isLogin = function (body, res) {
     }
     const {username, time} = JSON.parse(token);
     const now = new Date().getTime();
-    conn.query('select * from user_info_list where username =?', [username], (err, results) => {
+    conn.query('select managername from user_info_list where username =?', [username], (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0 || now - time > 3000000) {
@@ -55,7 +56,7 @@ const isLogin = function (body, res) {
         } else {
             result = {
                 code: 1,
-                username,
+                username: results[0].managername,
                 message: '用户登录状态有效',
             }
         }
@@ -65,7 +66,7 @@ const isLogin = function (body, res) {
 
 const getUsers = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,username,typename,workshop from user_info_list', (err, results) => {
+    conn.query('select id,username,managername,usertype,workshop from user_info_list limit ?,?', [(page-1)*10, limit*1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from user_info_list', (err, count) => {
             if (err) return console.log(err.message)
@@ -82,10 +83,10 @@ const getUsers = function (body, res) {
 }
 
 const addUser = function (body, res) {
-    const {username, password, typename, usertype, workshop} = body;
+    const {username, password, managername, usertype, workshop} = body;
     conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
         if (results.length == 0) {
-            conn.query('INSERT INTO user_info_list (username, password, typename, usertype,workshop) VALUES (?, ?, ?, ?,?)', [username, password, typename, usertype, workshop], (err, results) => {
+            conn.query('INSERT INTO user_info_list (username, password, managername, usertype,workshop) VALUES (?, ?, ?, ?,?)', [username, password, managername, usertype, workshop], (err, results) => {
                 if (err) return console.log(err.message)
                 res.send({
                     code: 0,
@@ -101,4 +102,25 @@ const addUser = function (body, res) {
     });
 }
 
-module.exports = {login, isLogin, getUsers,addUser};
+const delUser = function (body, res) {
+    const {token, del_id} = body;
+    const {id} = JSON.parse(token);
+    console.log(id, del_id)
+    if (id * 1 == del_id * 1) {
+        res.send({
+            code: 1,
+            message: '用户不能删除自己，请增加超级管理员后删除自己。',
+        });
+    } else {
+        conn.query('delete from user_info_list where id = ?', [del_id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                message: '用户已删除',
+            });
+        })
+    }
+
+}
+
+module.exports = {login, isLogin, getUsers, addUser, delUser};
