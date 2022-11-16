@@ -11,15 +11,19 @@
     <ul class="layui-nav">
         <li class="layui-nav-item layui-this"><a href="/images">图库</a></li>
         <li class="layui-nav-item" id="managerPage"><a href="/users">用户</a></li>
+        <li class="layui-nav-item" id="managerImage"><a href="/imageManager">图片管理</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="username"></span></a>
-            <dl class="layui-nav-child">
+            <dl class="layui-nav-child" style="z-index: 999">
                 <dd><a href="javascript:" id="logoutBtn">退出登录</a></dd>
             </dl>
         </li>
     </ul>
+    <table id="demo" lay-filter="test"></table>
 </div>
-
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
+</script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
@@ -38,6 +42,7 @@
                     });
                 } else {
                     if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
+                    if (res.usertype == 2) document.getElementById('managerImage').style.display = 'none';
                     document.getElementById('username').innerText = res.username;
                 }
             },
@@ -58,9 +63,119 @@
             });
         }
     });
+    layui.use('table', function () {
+        const table = layui.table;
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            , url: '/getUsers' //数据接口
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'ID'}
+                , {field: 'username', title: '登录用户名'}
+                , {field: 'usertype', title: '用户类型'}
+                , {field: 'workshop', title: '车间/科室'}
+                , {field: 'managername', title: '用户姓名'}
+                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
+            ]]
+            , done: function (res, page, count) {
+                const $ = layui.$;
+                $("[data-field='usertype']").children().each(function () {
+                    if ($(this).text() == '1') {
+                        $(this).text("超级管理员")
+                    } else if ($(this).text() == '2') {
+                        $(this).text("普通用户")
+                    }
+                })
+            }
+        });
+        //监听行工具事件
+        table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            const {managername, id} = obj.data
+            const message = '真的删除用户' + '<label style="color: darkred">' + managername + '</label>' + '吗？';
+            layer.confirm(message, function (index) {
+                const delLoading = layer.load(1);
+                layui.$.ajax({
+                    url: '/delUser', //提交接口
+                    type: 'post',
+                    data: {del_id: id, token: localStorage.getItem('token')},
+                    success: function (res) {
+                        layer.close(delLoading);
+                        layer.close(index);
+                        if (res.code == 0) {
+                            obj.del();
+                        } else {
+                            layer.msg(JSON.stringify(res.message), {icon: 2});
+                        }
+                    },
+                    error: function (mas, textStatus, errorThrown) {
+                        layer.msg("请求失败");
+                        layer.close(delLoading);
+                        layer.close(index);
+                    }
+                });
+            });
+        });
 
+    });
 </script>
-
 </script>
+<form class="layui-form" style="display: none;margin-top: 15px;margin-right: 15px;" action="" id="infoMadel">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户</label>
+        <div class="layui-input-inline">
+            <input type="text" name="username" required lay-verify="required" placeholder="请输入用户名" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">密码</label>
+        <div class="layui-input-inline">
+            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+            <select name="usertype" lay-verify="required">
+                <option value="">请选择用户类型</option>
+                <option value="1">超级管理员</option>
+                <option value="2">普通用户</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select name="workshop" lay-verify="required">
+                <option value="">请选择车间或部门</option>
+                <option value="IT科">IT科</option>
+                <option value="型材">型材</option>
+                <option value="冲压">冲压</option>
+                <option value="总六一">总六一</option>
+                <option value="总六二">总六二</option>
+                <option value="总三一">总三一</option>
+                <option value="总三二">总三二</option>
+                <option value="总五">总五</option>
+                <option value="总四">总四</option>
+                <option value="涂装">涂装</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">管理员名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="managername" required lay-verify="required" placeholder="请输入用户名" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" style="margin-top: 100px">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
 </body>
 </html>
