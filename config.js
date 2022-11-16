@@ -45,7 +45,7 @@ const isLogin = function (body, res) {
     }
     const {username, time} = JSON.parse(token);
     const now = new Date().getTime();
-    conn.query('select managername from user_info_list where username =?', [username], (err, results) => {
+    conn.query('select managername,usertype from user_info_list where username =?', [username], (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0 || now - time > 3000000) {
@@ -57,6 +57,7 @@ const isLogin = function (body, res) {
             result = {
                 code: 1,
                 username: results[0].managername,
+                usertype:results[0].usertype,
                 message: '用户登录状态有效',
             }
         }

@@ -46,6 +46,7 @@
                         window.location.href = '/';
                     });
                 } else {
+                    if (res.usertype == 2) window.location.href = '/images';
                     document.getElementById('username').innerText = res.username;
                 }
             },
