@@ -3,14 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>图片展示</title>
+    <title>图片管理</title>
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
 <div>
     <ul class="layui-nav">
-        <li class="layui-nav-item layui-this"><a href="/images">图库</a></li>
-        <li class="layui-nav-item" id="managerPage"><a href="/users">用户</a></li>
+        <li class="layui-nav-item"><a href="/images">图库</a></li>
+        <li class="layui-nav-item"><a href="/users">用户</a></li>
+        <li class="layui-nav-item layui-this"><a href="/imagesManager">图片管理</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="username"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
@@ -18,7 +19,7 @@
             </dl>
         </li>
     </ul>
-    <button type="button" class="layui-btn" id="test1" style="margin: 8px 8px 0px 8px">
+    <button type="button" class="layui-btn" id="upLoadButton" style="margin: 8px 8px 0px 8px">
         <i class="layui-icon">&#xe67c;</i>上传图纸
     </button>
     <table id="demo" lay-filter="test"></table>
@@ -44,8 +45,8 @@
                         window.location.href = '/';
                     });
                 } else {
-                    if (res.usertype == 2) window.location.href = '/images';
-                    if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
+                    // if (res.usertype == 2) window.location.href = '/images';
+                    // if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
                     document.getElementById('username').innerText = res.username;
                 }
             },
@@ -70,13 +71,15 @@
         const upload = layui.upload;
         //执行实例
         const uploadInst = upload.render({
-            elem: '#test1' //绑定元素
-            , url: '/upload/' //上传接口
+            elem: '#upLoadButton' //绑定元素
+            , url: '/upload' //上传接口
             , done: function (res) {
                 //上传完毕回调
+                console.log('res=====',res);
             }
-            , error: function () {
+            , error: function (err) {
                 //请求异常回调
+                console.log('err=====',err);
             }
         });
     });

@@ -5,10 +5,11 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const app = express();
 const bodyParser = require('body-parser');
+const formidable = require('formidable');
 
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser,delUser} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -30,8 +31,33 @@ app.post('/addUser', function (req, res) {
 app.post('/delUser', function (req, res) {
     delUser(req.body, res);
 })
+
+app.post('/upload', (req, res) => {
+    //创建formidable表单解析对象
+    const form = new formidable.IncomingForm();
+    //保留上传文件的后缀名字
+    form.keepExtensions = true;
+    //设置上传文件的保存路径
+    form.uploadDir = path.join(__dirname, 'uploads');
+    //解析客户端传递过来的formData对象
+    form.parse(req, (err, fields, files) => {
+        //req:请求对象，err错误对象，filelds：普通请求参数的内容
+        //files：文件的内容的参数包括保存的地址信息
+        //成功之后响应一个ok
+        console.log(files);
+        res.send(
+            {
+                "code": 0
+                , "msg": ""
+                , "data": {
+                    "src": "http://cdn.layui.com/123.jpg"
+                }
+            }
+        );
+    })
+});
 // ------------------- 前端路由页面 ----------------------------//
-const {index, users, images} = require('./routes/index');
+const {index, users, images, imagesManager} = require('./routes/index');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -40,7 +66,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(index, users, images);
+app.use(index, users, images, imagesManager);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));

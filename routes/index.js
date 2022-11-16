@@ -14,4 +14,8 @@ const images = router.get('/images', function (req, res, next) {
     res.render('images', {title: 'Express'});
 });
 
-module.exports = {index, users, images};
+const imagesManager = router.get('/imagesManager', function (req, res, next) {
+    res.render('imagesManager', {title: 'Express'});
+});
+
+module.exports = {index, users, images, imagesManager};

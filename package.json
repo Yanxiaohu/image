@@ -14,5 +14,8 @@
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "formidable": "^2.0.1"
   }
 }
