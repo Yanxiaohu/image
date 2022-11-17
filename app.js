@@ -3,13 +3,14 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const fs = require('fs');
 const app = express();
 const bodyParser = require('body-parser');
 const formidable = require('formidable');
 
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -32,7 +33,8 @@ app.post('/delUser', function (req, res) {
     delUser(req.body, res);
 })
 
-app.post('/upload', (req, res) => {
+app.post('/upload', function (req, res) {
+    const boyd = req.body;
     //创建formidable表单解析对象
     const form = new formidable.IncomingForm();
     //保留上传文件的后缀名字
@@ -44,18 +46,26 @@ app.post('/upload', (req, res) => {
         //req:请求对象，err错误对象，filelds：普通请求参数的内容
         //files：文件的内容的参数包括保存的地址信息
         //成功之后响应一个ok
-        console.log(files);
-        res.send(
-            {
-                "code": 0
-                , "msg": ""
-                , "data": {
-                    "src": "http://cdn.layui.com/123.jpg"
-                }
+        let oldPath = files.file.newFilename;
+        oldPath = './uploads/' + oldPath;
+        const image_name = files.file.originalFilename;
+        const name = './uploads/' + image_name;
+        fs.rename(oldPath, name, function (err) {
+            if (err) {
+                console.error("改名失败" + err);
             }
-        );
+        })
+        addImage(boyd, image_name, res);
     })
 });
+
+// 图片浏览
+app.use(express.static('uploads'));
+app.get('/uploads/*', function (req, res) {
+    res.sendFile(__dirname + "/" + req.url);
+    console.log("Request for " + req.url + " received.");
+})
+
 // ------------------- 前端路由页面 ----------------------------//
 const {index, users, images, imagesManager} = require('./routes/index');
 // view engine setup

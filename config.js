@@ -57,7 +57,7 @@ const isLogin = function (body, res) {
             result = {
                 code: 1,
                 username: results[0].managername,
-                usertype:results[0].usertype,
+                usertype: results[0].usertype,
                 message: '用户登录状态有效',
             }
         }
@@ -67,7 +67,7 @@ const isLogin = function (body, res) {
 
 const getUsers = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,username,managername,usertype,workshop from user_info_list limit ?,?', [(page-1)*10, limit*1], (err, results) => {
+    conn.query('select id,username,managername,usertype,workshop from user_info_list limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from user_info_list', (err, count) => {
             if (err) return console.log(err.message)
@@ -121,7 +121,29 @@ const delUser = function (body, res) {
             });
         })
     }
-
 }
 
-module.exports = {login, isLogin, getUsers, addUser, delUser};
+const addImage = function (body, image_name, res) {
+    const now = new Date().getTime();
+    conn.query('select * from image_info_list where image_name = ?', [image_name], (err, results) => {
+        if (results.length == 0) {
+            conn.query('INSERT INTO image_info_list (image_name, managername, up_time,url) VALUES (?, ?, ?,?)', [image_name, '颜虎', now, '1111111'], (err, results) => {
+                if (err) return console.log(err.message)
+                res.send(
+                    {
+                        "code": 0
+                        , "msg": "上传成功"
+                    }
+                );
+            })
+        } else {
+            res.send({
+                code: 1,
+                message: '操作异常，清联系管理员',
+            });
+        }
+    });
+}
+
+
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage};

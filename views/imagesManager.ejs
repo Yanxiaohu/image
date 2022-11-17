@@ -70,16 +70,17 @@
     layui.use('upload', function () {
         const upload = layui.upload;
         //执行实例
-        const uploadInst = upload.render({
+        upload.render({
             elem: '#upLoadButton' //绑定元素
             , url: '/upload' //上传接口
+            , data: {token: localStorage.getItem('token')}
             , done: function (res) {
                 //上传完毕回调
-                console.log('res=====',res);
+                console.log('res=====', res);
             }
             , error: function (err) {
                 //请求异常回调
-                console.log('err=====',err);
+                console.log('err=====', err);
             }
         });
     });
