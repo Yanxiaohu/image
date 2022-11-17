@@ -7,10 +7,10 @@ const fs = require('fs');
 const app = express();
 const bodyParser = require('body-parser');
 const formidable = require('formidable');
-
+const {trimZ} = require('./tool');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage, getImages} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -33,6 +33,9 @@ app.post('/delUser', function (req, res) {
     delUser(req.body, res);
 })
 
+app.get('/getImages', function (req, res) {
+    getImages(req.query, res);
+})
 app.post('/upload', function (req, res) {
     const boyd = req.body;
     //创建formidable表单解析对象
@@ -49,13 +52,14 @@ app.post('/upload', function (req, res) {
         let oldPath = files.file.newFilename;
         oldPath = './uploads/' + oldPath;
         const image_name = files.file.originalFilename;
-        const name = './uploads/' + image_name;
+        console.log('trim(image_name)=========================', trimZ(image_name))
+        const name = './uploads/' + trimZ(image_name);
         fs.rename(oldPath, name, function (err) {
             if (err) {
                 console.error("改名失败" + err);
             }
         })
-        addImage(boyd, image_name, res);
+        addImage(boyd, image_name, name, res);
     })
 });
 
@@ -118,3 +122,5 @@ console.log('http://' + getIPAddress() + ':' + 8081)
 
 
 module.exports = app;
+
+

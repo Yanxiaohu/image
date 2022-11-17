@@ -33,28 +33,28 @@
 <script>
     layui.use(function () {
         const layer = layui.layer;
-        const loadStart = layer.load();
-        layui.$.ajax({
-            url: '/isLogin', //提交接口
-            type: 'get',
-            data: {token: localStorage.getItem('token')},
-            success: function (res) {
-                layer.close(loadStart);
-                if (res.code != 1) {
-                    layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
-                        window.location.href = '/';
-                    });
-                } else {
-                    // if (res.usertype == 2) window.location.href = '/images';
-                    // if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
-                    document.getElementById('username').innerText = res.username;
-                }
-            },
-            error: function (mas, textStatus, errorThrown) {
-                layer.msg('网络错误，请联系管理员');
-                layer.close(loadStart);
-            }
-        });
+        // const loadStart = layer.load();
+        // layui.$.ajax({
+        //     url: '/isLogin', //提交接口
+        //     type: 'get',
+        //     data: {token: localStorage.getItem('token')},
+        //     success: function (res) {
+        //         layer.close(loadStart);
+        //         if (res.code != 1) {
+        //             layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
+        //                 window.location.href = '/';
+        //             });
+        //         } else {
+        //             // if (res.usertype == 2) window.location.href = '/images';
+        //             // if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
+        //             document.getElementById('username').innerText = res.username;
+        //         }
+        //     },
+        //     error: function (mas, textStatus, errorThrown) {
+        //         layer.msg('网络错误，请联系管理员');
+        //         layer.close(loadStart);
+        //     }
+        // });
         document.getElementById('logoutBtn').onclick = function () {
             layer.open({
                 title: '',
@@ -73,15 +73,20 @@
         upload.render({
             elem: '#upLoadButton' //绑定元素
             , url: '/upload' //上传接口
-            , data: {token: localStorage.getItem('token')}
+            , before: function () {
+                layer.load();
+            }
             , done: function (res) {
                 //上传完毕回调
-                console.log('res=====', res);
+                layer.closeAll('loading'); //关闭loading
+                layer.msg(res.message);
             }
             , error: function (err) {
                 //请求异常回调
-                console.log('err=====', err);
+                layer.msg(err.message);
+                layer.closeAll('loading'); //关闭loading
             }
+            , accept: 'file'
         });
     });
     layui.use('table', function () {
@@ -89,14 +94,13 @@
         //第一个实例
         table.render({
             elem: '#demo'
-            , url: '/getUsers' //数据接口
+            , url: '/getImages' //数据接口
             , page: true //开启分页
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
-                , {field: 'username', title: '登录用户名'}
-                , {field: 'usertype', title: '用户类型'}
-                , {field: 'workshop', title: '车间/科室'}
-                , {field: 'managername', title: '用户姓名'}
+                , {field: 'image_name', title: '图片名称'}
+                , {field: 'up_time', title: '上传时间'}
+                , {field: 'managername', title: '操作员'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
@@ -112,30 +116,35 @@
         });
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
-            const {managername, id} = obj.data
-            const message = '真的删除用户' + '<label style="color: darkred">' + managername + '</label>' + '吗？';
-            layer.confirm(message, function (index) {
-                const delLoading = layer.load(1);
-                layui.$.ajax({
-                    url: '/delUser', //提交接口
-                    type: 'post',
-                    data: {del_id: id, token: localStorage.getItem('token')},
-                    success: function (res) {
-                        layer.close(delLoading);
-                        layer.close(index);
-                        if (res.code == 0) {
-                            obj.del();
-                        } else {
-                            layer.msg(JSON.stringify(res.message), {icon: 2});
+            const {url, id, image_name} = obj.data
+            console.log(obj.event);
+            if (obj.event == 'del') {
+                const message = '真的删除图片' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
+                layer.confirm(message, function (index) {
+                    const delLoading = layer.load(1);
+                    layui.$.ajax({
+                        url: '/delImage', //提交接口
+                        type: 'post',
+                        data: {del_id: id},
+                        success: function (res) {
+                            layer.close(delLoading);
+                            layer.close(index);
+                            if (res.code == 0) {
+                                obj.del();
+                            } else {
+                                layer.msg(JSON.stringify(res.message), {icon: 2});
+                            }
+                        },
+                        error: function (mas, textStatus, errorThrown) {
+                            layer.msg("请求失败");
+                            layer.close(delLoading);
+                            layer.close(index);
                         }
-                    },
-                    error: function (mas, textStatus, errorThrown) {
-                        layer.msg("请求失败");
-                        layer.close(delLoading);
-                        layer.close(index);
-                    }
+                    });
                 });
-            });
+            } else {
+                window.open(url, '_blank');
+            }
         });
 
     });

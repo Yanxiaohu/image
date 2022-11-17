@@ -6,6 +6,7 @@ const conn = mysql.createConnection({
     password: 'root',
     database: 'my_db_02'
 })
+const jwt = require('jsonwebtoken');
 
 const login = function (body, res) {
     const {username, password} = body;
@@ -19,19 +20,19 @@ const login = function (body, res) {
             }
         } else {
             const cache = results[0];
-            const token = JSON.stringify({
+            const rule = {
                 username,
                 id: cache.id,
                 usertype: cache.usertype,
-                time: new Date().getTime()
-            });
-            result = {
-                code: 1,
-                message: '用户名密码正确',
-                token: token
-            }
+            };
+            //生成token:privateKey:"abcdefg",私钥，可以自己定义，生成token；expiresIn:"7d"token过期时间7天
+            jwt.sign(rule, "abcdefg", {expiresIn: "1d"}, function (err, token) {
+                //"Bearer" token前缀
+                token = "Bear" + token
+                //返回token
+                res.json({token, msg: '登录成功！', code: 1})
+            })
         }
-        res.send(result);
     })
 }
 
@@ -122,12 +123,11 @@ const delUser = function (body, res) {
         })
     }
 }
-
-const addImage = function (body, image_name, res) {
+const addImage = function (body, image_name,url, res) {
     const now = new Date().getTime();
     conn.query('select * from image_info_list where image_name = ?', [image_name], (err, results) => {
         if (results.length == 0) {
-            conn.query('INSERT INTO image_info_list (image_name, managername, up_time,url) VALUES (?, ?, ?,?)', [image_name, '颜虎', now, '1111111'], (err, results) => {
+            conn.query('INSERT INTO image_info_list (image_name, managername, up_time,url) VALUES (?, ?, ?,?)', [image_name, '颜虎', now, url], (err, results) => {
                 if (err) return console.log(err.message)
                 res.send(
                     {
@@ -139,11 +139,27 @@ const addImage = function (body, image_name, res) {
         } else {
             res.send({
                 code: 1,
-                message: '操作异常，清联系管理员',
+                message: '图片名重复，请确认后上传',
             });
         }
     });
 }
 
-
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage};
+const getImages = function (body, res) {
+    const {page, limit} = body;
+    conn.query('select id,image_name,url,up_time,managername from image_info_list order by id desc limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
+        if (err) return console.log(err.message)
+        conn.query('select count(*) count from image_info_list', (err, count) => {
+            if (err) return console.log(err.message)
+            let result = {};
+            result = {
+                code: 0,
+                count: count[0].count,
+                data: results,
+                message: '数据获取成功',
+            }
+            res.send(result);
+        })
+    })
+}
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage,getImages};

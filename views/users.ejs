@@ -34,27 +34,27 @@
 <script>
     layui.use(function () {
         const layer = layui.layer;
-        const loadStart = layer.load();
-        layui.$.ajax({
-            url: '/isLogin', //提交接口
-            type: 'get',
-            data: {token: localStorage.getItem('token')},
-            success: function (res) {
-                layer.close(loadStart);
-                if (res.code != 1) {
-                    layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
-                        window.location.href = '/';
-                    });
-                } else {
-                    if (res.usertype == 2) window.location.href = '/images';
-                    document.getElementById('username').innerText = res.username;
-                }
-            },
-            error: function (mas, textStatus, errorThrown) {
-                layer.msg('网络错误，请联系管理员');
-                layer.close(loadStart);
-            }
-        });
+        // const loadStart = layer.load();
+        // layui.$.ajax({
+        //     url: '/isLogin', //提交接口
+        //     type: 'get',
+        //     data: {token: localStorage.getItem('token')},
+        //     success: function (res) {
+        //         layer.close(loadStart);
+        //         if (res.code != 1) {
+        //             layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
+        //                 window.location.href = '/';
+        //             });
+        //         } else {
+        //             if (res.usertype == 2) window.location.href = '/images';
+        //             document.getElementById('username').innerText = res.username;
+        //         }
+        //     },
+        //     error: function (mas, textStatus, errorThrown) {
+        //         layer.msg('网络错误，请联系管理员');
+        //         layer.close(loadStart);
+        //     }
+        // });
         document.getElementById('logoutBtn').onclick = function () {
             layer.open({
                 title: '',
