@@ -42,7 +42,7 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 if (res.code == 1)  {
-                    window.location.href = '/images';
+                    window.location.href = '/imagesShow';
                 }
             },
             error: function (mas, textStatus, errorThrown) {

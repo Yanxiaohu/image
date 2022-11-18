@@ -10,7 +10,7 @@ const users = router.get('/users', function (req, res, next) {
     res.render('users', {title: 'Express'});
 });
 
-const images = router.get('/images', function (req, res, next) {
+const images = router.get('/imagesShow', function (req, res, next) {
     res.render('images', {title: 'Express'});
 });
 

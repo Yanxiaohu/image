@@ -55,7 +55,6 @@ app.post('/upload', function (req, res) {
         let oldPath = files.file.newFilename;
         oldPath = './uploads/' + oldPath;
         const image_name = files.file.originalFilename;
-        console.log('trim(image_name)=========================', trimZ(image_name))
         const name = './uploads/' + trimZ(image_name);
         fs.rename(oldPath, name, function (err) {
             if (err) {
