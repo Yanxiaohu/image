@@ -100,11 +100,13 @@
             , done: function (res) {
                 //上传完毕回调
                 layer.closeAll('loading'); //关闭loading
-                layer.msg(res.message);
+                layer.msg(JSON.stringify(res.msg),function () {
+                    history.go(0);
+                });
             }
             , error: function (err) {
                 //请求异常回调
-                layer.msg(err.message);
+                layer.msg(JSON.stringify(err.message), {icon: 2});
                 layer.closeAll('loading'); //关闭loading
             }
             , accept: 'file'
@@ -115,7 +117,7 @@
     });
     const tableRender = function (image_name) {
         const table = layui.table;
-        const rednerDir = {
+        const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
@@ -129,10 +131,10 @@
             ]]
         };
         if (image_name){
-            rednerDir.image_name = image_name;
+            renderDir.image_name = image_name;
         }
         //第一个实例
-        table.render(rednerDir);
+        table.render(renderDir);
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             const {url, id, image_name} = obj.data
@@ -144,7 +146,7 @@
                     layui.$.ajax({
                         url: '/delImage', //提交接口
                         type: 'post',
-                        data: {del_id: id},
+                        data: {del_id: id,image_name},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);

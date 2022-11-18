@@ -36,7 +36,6 @@
 <script>
     layui.use(function () {
         const layer = layui.layer;
-
         layui.$.ajax({
             url: '/isLogin', //提交接口
             type: 'get',
@@ -48,7 +47,6 @@
             },
             error: function (mas, textStatus, errorThrown) {
                 layer.msg('网络错误，请联系管理员');
-                layer.close(loadStart);
             }
         });
 

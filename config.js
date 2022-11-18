@@ -7,6 +7,7 @@ const conn = mysql.createConnection({
     database: 'my_db_02'
 })
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 const login = function (body, res) {
     const {username, password} = body;
@@ -163,7 +164,7 @@ const getImages = function (body, res) {
             })
         })
     } else {
-        conn.query('select id,image_name,url,up_time,managername from image_info_list where image_name like ? order by id desc limit ?,? ', ['%'+image_name+'%', (page - 1) * 10, limit * 1], (err, results) => {
+        conn.query('select id,image_name,url,up_time,managername from image_info_list where image_name like ? order by id desc limit ?,? ', ['%' + image_name + '%', (page - 1) * 10, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
             conn.query('select count(*) count from image_info_list where image_name = ?', [image_name], (err, count) => {
                 if (err) return console.log(err.message)
@@ -182,14 +183,20 @@ const getImages = function (body, res) {
 }
 
 const delImage = function (body, res) {
-    const {del_id} = body;
+    const {del_id, image_name} = body;
     conn.query('delete from image_info_list where id = ?', [del_id], (err, results) => {
         if (err) return console.log(err.message)
+        fs.unlink('./uploads/' + image_name, function (error) {
+            if (error) {
+                console.log(error);
+                return false;
+            }
+            console.log('删除文件成功');
+        })
         res.send({
             code: 0,
             message: '用户已删除',
         });
     })
-
 }
 module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage};
