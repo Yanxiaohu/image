@@ -123,7 +123,7 @@ const delUser = function (body, res) {
         })
     }
 }
-const addImage = function (body, image_name,url, res) {
+const addImage = function (body, image_name, url, res) {
     const now = new Date().getTime();
     conn.query('select * from image_info_list where image_name = ?', [image_name], (err, results) => {
         if (results.length == 0) {
@@ -162,4 +162,16 @@ const getImages = function (body, res) {
         })
     })
 }
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage,getImages};
+
+const delImage = function (body, res) {
+    const {del_id} = body;
+    conn.query('delete from image_info_list where id = ?', [del_id], (err, results) => {
+        if (err) return console.log(err.message)
+        res.send({
+            code: 0,
+            message: '用户已删除',
+        });
+    })
+
+}
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage};

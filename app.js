@@ -10,7 +10,7 @@ const formidable = require('formidable');
 const {trimZ} = require('./tool');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage, getImages} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -35,6 +35,9 @@ app.post('/delUser', function (req, res) {
 
 app.get('/getImages', function (req, res) {
     getImages(req.query, res);
+})
+app.post('/delImage', function (req, res) {
+    delImage(req.body, res);
 })
 app.post('/upload', function (req, res) {
     const boyd = req.body;
