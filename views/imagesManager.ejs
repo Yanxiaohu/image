@@ -22,7 +22,20 @@
     <button type="button" class="layui-btn" id="upLoadButton" style="margin: 8px 8px 0px 8px">
         <i class="layui-icon">&#xe67c;</i>上传图纸
     </button>
-    <table id="demo" lay-filter="test"></table>
+    <form class="layui-form" action="" style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
+        <div class="layui-form-item">
+            <div class="layui-input-inline">
+                <input type="text" name="image_name" required lay-verify="required" placeholder="请输入名称"
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn" lay-submit lay-filter="formDemo">搜索</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+
+    </form>
+    <table id="demo" lay-filter="test" style="width: 100%"></table>
 </div>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
@@ -31,6 +44,14 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
+    layui.use('form', function () {
+        const form = layui.form;
+        //监听提交
+        form.on('submit(formDemo)', function (data) {
+            tableRender(data.field.image_name)
+            return false;
+        });
+    });
     layui.use(function () {
         const layer = layui.layer;
         // const loadStart = layer.load();
@@ -90,12 +111,15 @@
         });
     });
     layui.use('table', function () {
+        tableRender();
+    });
+    const tableRender = function (image_name) {
         const table = layui.table;
-        //第一个实例
-        table.render({
+        const rednerDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
+            , where: {image_name}
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
                 , {field: 'image_name', title: '图片名称'}
@@ -103,17 +127,12 @@
                 , {field: 'managername', title: '操作员'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
-            , done: function (res, page, count) {
-                const $ = layui.$;
-                $("[data-field='usertype']").children().each(function () {
-                    if ($(this).text() == '1') {
-                        $(this).text("超级管理员")
-                    } else if ($(this).text() == '2') {
-                        $(this).text("普通用户")
-                    }
-                })
-            }
-        });
+        };
+        if (image_name){
+            rednerDir.image_name = image_name;
+        }
+        //第一个实例
+        table.render(rednerDir);
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             const {url, id, image_name} = obj.data
@@ -146,8 +165,7 @@
                 window.open(url, '_blank');
             }
         });
-
-    });
+    }
 </script>
 </script>
 <form class="layui-form" style="display: none;margin-top: 15px;margin-right: 15px;" action="" id="infoMadel">

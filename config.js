@@ -146,21 +146,39 @@ const addImage = function (body, image_name, url, res) {
 }
 
 const getImages = function (body, res) {
-    const {page, limit} = body;
-    conn.query('select id,image_name,url,up_time,managername from image_info_list order by id desc limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
-        if (err) return console.log(err.message)
-        conn.query('select count(*) count from image_info_list', (err, count) => {
+    const {page, limit, image_name} = body;
+    if (image_name === undefined) {
+        conn.query('select id,image_name,url,up_time,managername from image_info_list order by id desc limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
-            let result = {};
-            result = {
-                code: 0,
-                count: count[0].count,
-                data: results,
-                message: '数据获取成功',
-            }
-            res.send(result);
+            conn.query('select count(*) count from image_info_list', (err, count) => {
+                if (err) return console.log(err.message)
+                let result = {};
+                result = {
+                    code: 0,
+                    count: count[0].count,
+                    data: results,
+                    message: '数据获取成功',
+                }
+                res.send(result);
+            })
         })
-    })
+    } else {
+        conn.query('select id,image_name,url,up_time,managername from image_info_list where image_name like ? order by id desc limit ?,? ', ['%'+image_name+'%', (page - 1) * 10, limit * 1], (err, results) => {
+            if (err) return console.log(err.message)
+            conn.query('select count(*) count from image_info_list where image_name = ?', [image_name], (err, count) => {
+                if (err) return console.log(err.message)
+                let result = {};
+                result = {
+                    code: 0,
+                    count: count[0].count,
+                    data: results,
+                    message: '数据获取成功',
+                }
+                res.send(result);
+            })
+        })
+    }
+
 }
 
 const delImage = function (body, res) {
