@@ -40,7 +40,7 @@ app.post('/delImage', function (req, res) {
     delImage(req.body, res);
 })
 app.post('/upload', function (req, res) {
-    const boyd = req.body;
+    const {body} = req;
     //创建formidable表单解析对象
     const form = new formidable.IncomingForm();
     //保留上传文件的后缀名字
@@ -61,7 +61,7 @@ app.post('/upload', function (req, res) {
                 console.error("改名失败" + err);
             }
         })
-        addImage(boyd, image_name, name, res);
+        addImage(fields, image_name, name, res);
     })
 });
 

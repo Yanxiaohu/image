@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>图片管理</title>
+    <title>图纸管理</title>
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item"><a href="/users">用户</a></li>
-        <li class="layui-nav-item layui-this"><a href="/imagesManager">图片管理</a></li>
+        <li class="layui-nav-item" id="userManager"><a href="/users">用户</a></li>
+        <li class="layui-nav-item layui-this" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="username"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
@@ -54,28 +54,25 @@
     });
     layui.use(function () {
         const layer = layui.layer;
-        // const loadStart = layer.load();
-        // layui.$.ajax({
-        //     url: '/isLogin', //提交接口
-        //     type: 'get',
-        //     data: {token: localStorage.getItem('token')},
-        //     success: function (res) {
-        //         layer.close(loadStart);
-        //         if (res.code != 1) {
-        //             layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
-        //                 window.location.href = '/';
-        //             });
-        //         } else {
-        //             // if (res.usertype == 2) window.location.href = '/images';
-        //             // if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
-        //             document.getElementById('username').innerText = res.username;
-        //         }
-        //     },
-        //     error: function (mas, textStatus, errorThrown) {
-        //         layer.msg('网络错误，请联系管理员');
-        //         layer.close(loadStart);
-        //     }
-        // });
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/isLogin', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token')},
+            success: function (res) {
+                layer.close(loadStart);
+                if (res.code != 0) {
+                    window.location.href = '/';
+                } else {
+                    if (res.usertype == 2) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerText = res.manager_name;
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.msg('网络错误，请联系管理员');
+                layer.close(loadStart);
+            }
+        });
         document.getElementById('logoutBtn').onclick = function () {
             layer.open({
                 title: '',
@@ -94,15 +91,20 @@
         upload.render({
             elem: '#upLoadButton' //绑定元素
             , url: '/upload' //上传接口
+            , data: {token: localStorage.getItem('token')}
             , before: function () {
                 layer.load();
             }
             , done: function (res) {
                 //上传完毕回调
                 layer.closeAll('loading'); //关闭loading
-                layer.msg(JSON.stringify(res.msg), function () {
-                    history.go(0);
-                });
+                if (res.code == 5) {
+                    window.location.href = '/';
+                } else {
+                    layer.msg(res.message, function () {
+                        history.go(0);
+                    });
+                }
             }
             , error: function (err) {
                 //请求异常回调
@@ -124,9 +126,9 @@
             , where: {image_name}
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
-                , {field: 'image_name', title: '图片名称'}
+                , {field: 'image_name', title: '图纸名称'}
                 , {field: 'up_time', title: '上传时间'}
-                , {field: 'managername', title: '操作员'}
+                , {field: 'manager_name', title: '操作员'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
         };
@@ -140,18 +142,20 @@
             const {url, id, image_name} = obj.data
             console.log(obj.event);
             if (obj.event == 'del') {
-                const message = '真的删除图片' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
+                const message = '真的删除图纸' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
                     const delLoading = layer.load(1);
                     layui.$.ajax({
                         url: '/delImage', //提交接口
                         type: 'post',
-                        data: {del_id: id, image_name},
+                        data: {del_id: id, image_name, token: localStorage.getItem('token')},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);
                             if (res.code == 0) {
                                 obj.del();
+                            } else if (res.code == 5) {
+                                window.location.href = '/';
                             } else {
                                 layer.msg(JSON.stringify(res.message), {icon: 2});
                             }

@@ -10,8 +10,8 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item layui-this"><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item"><a href="/users">用户</a></li>
-        <li class="layui-nav-item "><a href="/imagesManager">图片管理</a></li>
+        <li class="layui-nav-item" id="userManager"><a href="/users">用户</a></li>
+        <li class="layui-nav-item " id="imageManager"><a href="/imagesManager">图片管理</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="username"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
@@ -50,28 +50,26 @@
     });
     layui.use(function () {
         const layer = layui.layer;
-        // const loadStart = layer.load();
-        // layui.$.ajax({
-        //     url: '/isLogin', //提交接口
-        //     type: 'get',
-        //     data: {token: localStorage.getItem('token')},
-        //     success: function (res) {
-        //         layer.close(loadStart);
-        //         if (res.code != 1) {
-        //             layer.msg(JSON.stringify(res.message), {icon: res.code}, function () {
-        //                 window.location.href = '/';
-        //             });
-        //         } else {
-        //             // if (res.usertype == 2) window.location.href = '/images';
-        //             // if (res.usertype == 2) document.getElementById('managerPage').style.display = 'none';
-        //             document.getElementById('username').innerText = res.username;
-        //         }
-        //     },
-        //     error: function (mas, textStatus, errorThrown) {
-        //         layer.msg('网络错误，请联系管理员');
-        //         layer.close(loadStart);
-        //     }
-        // });
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/isLogin', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token')},
+            success: function (res) {
+                layer.close(loadStart);
+                if (res.code != 0) {
+                    window.location.href = '/';
+                } else {
+                    if (res.usertype == 2) document.getElementById('imageManager').style.display = 'none';
+                    if (res.usertype == 2) document.getElementById('userManager').style.display = 'none';
+                    document.getElementById('username').innerText = res.manager_name;
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.msg('网络错误，请联系管理员');
+                layer.close(loadStart);
+            }
+        });
         document.getElementById('logoutBtn').onclick = function () {
             layer.open({
                 title: '',
@@ -98,7 +96,7 @@
                 {field: 'id', title: 'ID'}
                 , {field: 'image_name', title: '图片名称'}
                 , {field: 'up_time', title: '上传时间'}
-                , {field: 'managername', title: '操作员'}
+                , {field: 'manager_name', title: '操作员'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
         };
