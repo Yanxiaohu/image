@@ -64,7 +64,7 @@
                 if (res.code != 0) {
                     window.location.href = '/';
                 } else {
-                    if (res.usertype == 2) window.location.href = '/imagesShow';
+                    if (res.user_type == 2) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerText = res.manager_name;
                 }
             },

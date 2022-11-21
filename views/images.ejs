@@ -60,8 +60,8 @@
                 if (res.code != 0) {
                     window.location.href = '/';
                 } else {
-                    if (res.usertype == 2) document.getElementById('imageManager').style.display = 'none';
-                    if (res.usertype == 2) document.getElementById('userManager').style.display = 'none';
+                    if (res.user_type == 2) document.getElementById('imageManager').style.display = 'none';
+                    if (res.user_type == 2) document.getElementById('userManager').style.display = 'none';
                     document.getElementById('username').innerText = res.manager_name;
                 }
             },

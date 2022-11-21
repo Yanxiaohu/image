@@ -11,7 +11,7 @@ const fs = require('fs');
 const secret = 'YanchenImageManager';
 const login = function (body, res) {
     const {username, password} = body;
-    conn.query('select manager_name,id,usertype,username from user_info_list where username =? AND password =?', [username, password], (err, results) => {
+    conn.query('select manager_name,id,user_type,username from user_info_list where username =? AND password =?', [username, password], (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0) {
@@ -51,7 +51,7 @@ const isLogin = function (body, res) {
 }
 const getUsers = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,username,manager_name,usertype,workshop from user_info_list limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
+    conn.query('select id,username,manager_name,user_type,workshop from user_info_list limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from user_info_list', (err, count) => {
             if (err) return console.log(err.message)
@@ -67,7 +67,7 @@ const getUsers = function (body, res) {
     })
 }
 const addUser = function (body, res) {
-    const {username, password, manager_name, usertype, workshop, token} = body;
+    const {username, password, manager_name, user_type, workshop, token} = body;
     jwt.verify(token, secret, function (err) {
         if (err) {
             res.send({
@@ -77,7 +77,7 @@ const addUser = function (body, res) {
         } else {
             conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('INSERT INTO user_info_list (username, password, manager_name, usertype,workshop) VALUES (?, ?, ?, ?,?)', [username, password, manager_name, usertype, workshop], (err, results) => {
+                    conn.query('INSERT INTO user_info_list (username, password, manager_name, user_type,workshop) VALUES (?, ?, ?, ?,?)', [username, password, manager_name, usertype, workshop], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,

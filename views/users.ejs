@@ -44,7 +44,7 @@
                 if (res.code != 0) {
                     window.location.href = '/';
                 } else {
-                    if (res.usertype == 2) window.location.href = '/imagesShow';
+                    if (res.user_type == 2) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerText = res.manager_name;
                 }
             },
@@ -77,14 +77,14 @@
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
                 , {field: 'username', title: '登录用户名'}
-                , {field: 'usertype', title: '用户类型'}
+                , {field: 'user_type', title: '用户类型'}
                 , {field: 'workshop', title: '车间/科室'}
                 , {field: 'manager_name', title: '用户姓名'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
                 const $ = layui.$;
-                $("[data-field='usertype']").children().each(function () {
+                $("[data-field='user_type']").children().each(function () {
                     if ($(this).text() == '1') {
                         $(this).text("超级管理员")
                     } else if ($(this).text() == '2') {
@@ -156,7 +156,7 @@
     <div class="layui-form-item">
         <label class="layui-form-label">类型</label>
         <div class="layui-input-inline">
-            <select name="usertype" lay-verify="required">
+            <select name="user_type" lay-verify="required">
                 <option value="">请选择用户类型</option>
                 <option value="1">超级管理员</option>
                 <option value="2">普通用户</option>
