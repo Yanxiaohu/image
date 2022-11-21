@@ -99,6 +99,15 @@
                 , {field: 'manager_name', title: '操作员'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
+            , done: function (res, page, count) {
+                const $ = layui.$;
+                $("[data-field='up_time']").children().each(function () {
+                    const timeNumber = $(this).text() * 1;
+                    const time = new Date(timeNumber).toLocaleString();
+                    if (timeNumber > 100) $(this).text(time)
+
+                })
+            }
         };
         if (image_name) {
             renderDir.image_name = image_name;

@@ -16,6 +16,7 @@ const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage
 app.use(bodyParser.urlencoded({extends: false}))
 
 app.post('/login', function (req, res) {
+    console.log(req.ip);
     login(req.body, res);
 })
 
@@ -40,7 +41,6 @@ app.post('/delImage', function (req, res) {
     delImage(req.body, res);
 })
 app.post('/upload', function (req, res) {
-    const {body} = req;
     //创建formidable表单解析对象
     const form = new formidable.IncomingForm();
     //保留上传文件的后缀名字

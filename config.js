@@ -23,7 +23,7 @@ const login = function (body, res) {
         } else {
             const cache = results[0];
             const rule = {...cache};
-            jwt.sign(rule, secret, {expiresIn: "10s"}, function (err, token) {
+            jwt.sign(rule, secret, {expiresIn: "10h"}, function (err, token) {
                 //"Bearer" token前缀
                 token = token
                 //返回token

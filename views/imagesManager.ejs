@@ -13,7 +13,7 @@
         <li class="layui-nav-item" id="userManager"><a href="/users">用户</a></li>
         <li class="layui-nav-item layui-this" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item" style="float: right">
-            <a href="javascript:;"><span id="username"></span></a>
+            <a href="javascript:;"><span id="manager_name"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
                 <dd><a href="javascript:" id="logoutBtn">退出登录</a></dd>
             </dl>
@@ -131,7 +131,20 @@
                 , {field: 'manager_name', title: '操作员'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
+            , done: function (res, page, count) {
+                const $ = layui.$;
+                $("[data-field='up_time']").children().each(function () {
+                    const timeNumber = $(this).text() * 1;
+                    const time = new Date(timeNumber).toLocaleString();
+                    if (timeNumber > 100) $(this).text(time)
+
+                })
+            }
         };
+        1659424247000
+        1668848953787
+
+
         if (image_name) {
             renderDir.image_name = image_name;
         }
