@@ -11,7 +11,7 @@ const fs = require('fs');
 const secret = 'YanchenImageManager';
 const login = function (body, ip, res) {
     const {username, password} = body;
-    conn.query('select manager_name,id,user_type,username from user_info_list where username =? AND password =?', [username, password], (err, results) => {
+    conn.query('select manager_name,id,user_type,username,times from user_info_list where username =? AND password =?', [username, password], (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0) {
@@ -64,7 +64,7 @@ const isLogin = function (body, ip, res) {
 }
 const getUsers = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,username,manager_name,user_type,workshop from user_info_list limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
+    conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time from user_info_list limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from user_info_list', (err, count) => {
             if (err) return console.log(err.message)
