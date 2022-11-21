@@ -10,17 +10,17 @@ const formidable = require('formidable');
 const {trimZ} = require('./tool');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
 
 app.post('/login', function (req, res) {
-    login(req.body, req.ip,res);
+    login(req.body, req.ip, res);
 })
 
 app.get('/isLogin', function (req, res) {
-    isLogin(req.query, req.ip,res);
+    isLogin(req.query, req.ip, res);
 })
 //写方法拉去数据
 app.get('/getUsers', function (req, res) {
@@ -28,6 +28,9 @@ app.get('/getUsers', function (req, res) {
 })
 app.post('/addUser', function (req, res) {
     addUser(req.body, res);
+})
+app.post('/editUser', function (req, res) {
+    editUser(req.body, res);
 })
 app.post('/delUser', function (req, res) {
     delUser(req.body, res);
@@ -67,8 +70,9 @@ app.post('/upload', function (req, res) {
 // 图片浏览
 app.use(express.static('uploads'));
 app.get('/uploads/*', function (req, res) {
+    console.log(req);
     res.sendFile(__dirname + "/" + req.url);
-    console.log("Request for " + req.url + " received.");
+    // console.log("Request for " + req.url + " received.");
 })
 
 // ------------------- 前端路由页面 ----------------------------//

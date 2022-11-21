@@ -29,8 +29,69 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑 <i class="layui-icon"></i></a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
+<form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""
+      id="infoMadelID">
+    <div class="layui-form-item">
+        <label class="layui-form-label">账号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="username" required lay-verify="required" placeholder="请输入账号" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">密码</label>
+        <div class="layui-input-inline">
+            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off"
+                   defaultValue="123456"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+            <select name="user_type" lay-verify="required">
+                <option value="">请选择用户类型</option>
+                <option value="1">超级管理员</option>
+                <option value="2">普通用户</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select name="workshop" lay-verify="required">
+                <option value="">请选择车间或部门</option>
+                <option value="IT科">IT科</option>
+                <option value="型材">型材</option>
+                <option value="冲压">冲压</option>
+                <option value="总六一">总六一</option>
+                <option value="总六二">总六二</option>
+                <option value="总三一">总三一</option>
+                <option value="总三二">总三二</option>
+                <option value="总五">总五</option>
+                <option value="总四">总四</option>
+                <option value="涂装">涂装</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">姓名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="manager_name" required lay-verify="required" placeholder="请输入用户名"
+                   autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" style="margin-top: 100px">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
 <script>
     layui.use(function () {
         const layer = layui.layer;
@@ -102,124 +163,80 @@
             }
         });
         //监听头工具栏事件
+        let editID='';
         table.on('toolbar(test)', function (obj) {
             switch (obj.event) {
                 case 'add':
+                    editID=''
                     layer.open({
                         title: '添加用户',
                         type: 1,
-                        content: layui.$('#infoMadel') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                        content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                     });
+                    layui.form.val('infoMadel', {});
                     break;
             }
         });
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
-            const {manager_name, id} = obj.data
-            const message = '真的删除用户' + '<label style="color: darkred">' + manager_name + '</label>' + '吗？';
-            layer.confirm(message, function (index) {
-                const delLoading = layer.load(1);
-                layui.$.ajax({
-                    url: '/delUser', //提交接口
-                    type: 'post',
-                    data: {del_id: id, token: localStorage.getItem('token')},
-                    success: function (res) {
-                        layer.close(delLoading);
-                        layer.close(index);
-                        if (res.code == 0) {
-                            obj.del();
-                        } else if (res.code == 5) {
-                            window.location.href = '/';
-                        } else {
-                            layer.msg(JSON.stringify(res.message), {icon: 2});
+            const {manager_name, username, id} = obj.data
+            if (obj.event === 'del') {
+                const message = '真的删除用户' + '<label style="color: darkred">' + manager_name + '</label>' + '吗？';
+                layer.confirm(message, function (index) {
+                    const delLoading = layer.load(1);
+                    layui.$.ajax({
+                        url: '/delUser', //提交接口
+                        type: 'post',
+                        data: {del_id: id, token: localStorage.getItem('token')},
+                        success: function (res) {
+                            layer.close(delLoading);
+                            layer.close(index);
+                            if (res.code == 0) {
+                                obj.del();
+                            } else if (res.code == 5) {
+                                window.location.href = '/';
+                            } else {
+                                layer.msg(JSON.stringify(res.message), {icon: 2});
+                            }
+                        },
+                        error: function (mas, textStatus, errorThrown) {
+                            layer.msg("请求失败");
+                            layer.close(delLoading);
+                            layer.close(index);
                         }
-                    },
-                    error: function (mas, textStatus, errorThrown) {
-                        layer.msg("请求失败");
-                        layer.close(delLoading);
-                        layer.close(index);
-                    }
+                    });
                 });
-            });
+            } else if (obj.event === 'edit') {
+                editID = obj.data.id;
+                layui.form.val('infoMadel', obj.data);
+                layer.open({
+                    title: '编辑用户',
+                    type: 1,
+                    content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                });
+            }
         });
-
-    });
-
-</script>
-<form class="layui-form" style="display: none;margin-top: 15px;margin-right: 15px;" action="" id="infoMadel">
-    <div class="layui-form-item">
-        <label class="layui-form-label">用户</label>
-        <div class="layui-input-inline">
-            <input type="text" name="username" required lay-verify="required" placeholder="请输入用户名" autocomplete="off"
-                   class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">密码</label>
-        <div class="layui-input-inline">
-            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off"
-                   class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">类型</label>
-        <div class="layui-input-inline">
-            <select name="user_type" lay-verify="required">
-                <option value="">请选择用户类型</option>
-                <option value="1">超级管理员</option>
-                <option value="2">普通用户</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">部门</label>
-        <div class="layui-input-inline">
-            <select name="workshop" lay-verify="required">
-                <option value="">请选择车间或部门</option>
-                <option value="IT科">IT科</option>
-                <option value="型材">型材</option>
-                <option value="冲压">冲压</option>
-                <option value="总六一">总六一</option>
-                <option value="总六二">总六二</option>
-                <option value="总三一">总三一</option>
-                <option value="总三二">总三二</option>
-                <option value="总五">总五</option>
-                <option value="总四">总四</option>
-                <option value="涂装">涂装</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">管理员名</label>
-        <div class="layui-input-inline">
-            <input type="text" name="manager_name" required lay-verify="required" placeholder="请输入用户名"
-                   autocomplete="off"
-                   class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item" style="margin-top: 100px">
-        <div class="layui-input-block">
-            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-        </div>
-    </div>
-</form>
-<script>
-    layui.use('form', function () {
         const form = layui.form;
         //监听提交
         form.on('submit(formDemo)', function (data) {
             const loadStart = layer.load();
+            let url = '';
+            if (editID == ''){
+                url = '/addUser';
+            }else  {
+                url = '/editUser'
+                data.field.editID = editID;
+            }
             layui.$.ajax({
-                url: '/addUser', //提交接口
+                url, //提交接口
                 type: 'post',
                 data: {...data.field, token: localStorage.getItem('token')},
                 success: function (res) {
                     layer.close(loadStart);
                     if (res.code == 5) {
-                        window.location.href = '';
-                    } else if (res.code == 0) {
                         window.location.href = '/';
+                    } else if (res.code == 0) {
+                        window.location.href = '';
                     } else {
                         layer.msg(JSON.stringify(res.message), {icon: 0});
                     }

@@ -30,7 +30,7 @@ const login = function (body, ip, res) {
                 //"Bearer" token前缀
                 token = token
                 //返回token
-                res.json({token, msg: '登录成功！', code: 0})
+                res.json({token, message: '登录成功！', code: 0})
             })
         }
     })
@@ -58,13 +58,12 @@ const isLogin = function (body, ip, res) {
                     })
                 }
             });
-
         }
     })
 }
 const getUsers = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time from user_info_list limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
+    conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time,password from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from user_info_list', (err, count) => {
             if (err) return console.log(err.message)
@@ -90,7 +89,7 @@ const addUser = function (body, res) {
         } else {
             conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('INSERT INTO user_info_list (username, password, manager_name, user_type,workshop) VALUES (?, ?, ?, ?,?)', [username, password, manager_name, usertype, workshop], (err, results) => {
+                    conn.query('INSERT INTO user_info_list (username, password, manager_name, user_type,workshop) VALUES (?, ?, ?, ?,?)', [username, password, manager_name, user_type, workshop], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -101,6 +100,34 @@ const addUser = function (body, res) {
                     res.send({
                         code: 1,
                         message: '用户已存在',
+                    });
+                }
+            });
+        }
+    })
+}
+const editUser = function (body, res) {
+    const {username, password, manager_name, user_type, workshop, editID, token} = body;
+    jwt.verify(token, secret, function (err) {
+        if (err) {
+            res.send({
+                code: 5,
+                message: '用户登录已过期，请重新登录'
+            })
+        } else {
+            conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
+                if (results.length == 0) {
+                    conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop = ? where id=?', [username, password, manager_name, user_type, workshop, editID], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '用户已成功编辑',
+                        });
+                    })
+                } else {
+                    res.send({
+                        code: 1,
+                        message: '用户名已存在，请更改后重试',
                     });
                 }
             });
@@ -150,7 +177,7 @@ const addImage = function (body, image_name, url, res) {
                         res.send(
                             {
                                 "code": 0
-                                , "msg": "上传成功"
+                                , "message": "上传成功"
                             }
                         );
                     })
@@ -167,7 +194,7 @@ const addImage = function (body, image_name, url, res) {
 const getImages = function (body, res) {
     const {page, limit, image_name} = body;
     if (image_name === undefined) {
-        conn.query('select id,image_name,url,up_time,manager_name from image_info_list order by id desc limit ?,?', [(page - 1) * 10, limit * 1], (err, results) => {
+        conn.query('select id,image_name,url,up_time,manager_name from image_info_list order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
             conn.query('select count(*) count from image_info_list', (err, count) => {
                 if (err) return console.log(err.message)
@@ -226,4 +253,4 @@ const delImage = function (body, res) {
     });
 }
 
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage};
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser};
