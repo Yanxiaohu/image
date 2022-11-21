@@ -16,12 +16,11 @@ const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage
 app.use(bodyParser.urlencoded({extends: false}))
 
 app.post('/login', function (req, res) {
-    console.log(req.ip);
-    login(req.body, res);
+    login(req.body, req.ip,res);
 })
 
 app.get('/isLogin', function (req, res) {
-    isLogin(req.query, res);
+    isLogin(req.query, req.ip,res);
 })
 //写方法拉去数据
 app.get('/getUsers', function (req, res) {

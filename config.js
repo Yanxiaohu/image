@@ -9,7 +9,7 @@ const conn = mysql.createConnection({
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const secret = 'YanchenImageManager';
-const login = function (body, res) {
+const login = function (body, ip, res) {
     const {username, password} = body;
     conn.query('select manager_name,id,user_type,username from user_info_list where username =? AND password =?', [username, password], (err, results) => {
         if (err) return console.log(err.message)
@@ -23,6 +23,9 @@ const login = function (body, res) {
         } else {
             const cache = results[0];
             const rule = {...cache};
+            rule.ip_info = ip;
+            const times = rule.times ? rule.times + 1 : 1;
+            conn.query('update user_info_list set ip_info=?,last_login_time = ?,times = ? where id=?', [ip, new Date().getTime(), times, cache.id]);
             jwt.sign(rule, secret, {expiresIn: "10h"}, function (err, token) {
                 //"Bearer" token前缀
                 token = token
@@ -32,7 +35,7 @@ const login = function (body, res) {
         }
     })
 }
-const isLogin = function (body, res) {
+const isLogin = function (body, ip, res) {
     const {token} = body;
     jwt.verify(token, secret, function (err, decoded) {
         if (err) {
@@ -41,11 +44,21 @@ const isLogin = function (body, res) {
                 message: '用户登录已过期，请重新登录'
             })
         } else {
-            res.send({
-                code: 0,
-                ...decoded,
-                message: '用户在有效期'
-            })
+            conn.query('select * from user_info_list where ip_info =? AND id =?', [ip, decoded.id], (err, results) => {
+                if (results != undefined && results.length >= 1) {
+                    res.send({
+                        code: 0,
+                        ...decoded,
+                        message: '用户在有效期'
+                    })
+                } else {
+                    res.send({
+                        code: 5,
+                        message: '用户登录已过期，请重新登录'
+                    })
+                }
+            });
+
         }
     })
 }
