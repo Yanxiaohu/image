@@ -163,11 +163,11 @@
             }
         });
         //监听头工具栏事件
-        let editID='';
+        let editID = '';
         table.on('toolbar(test)', function (obj) {
             switch (obj.event) {
                 case 'add':
-                    editID=''
+                    editID = ''
                     layer.open({
                         title: '添加用户',
                         type: 1,
@@ -221,9 +221,9 @@
         form.on('submit(formDemo)', function (data) {
             const loadStart = layer.load();
             let url = '';
-            if (editID == ''){
+            if (editID == '') {
                 url = '/addUser';
-            }else  {
+            } else {
                 url = '/editUser'
                 data.field.editID = editID;
             }

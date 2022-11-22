@@ -107,30 +107,50 @@ const addUser = function (body, res) {
     })
 }
 const editUser = function (body, res) {
-    const {username, password, manager_name, user_type, workshop, editID, token} = body;
-    jwt.verify(token, secret, function (err) {
+    const {username, password, manager_name, user_type, workshop, editID, token, new_password} = body;
+    jwt.verify(token, secret, function (err, decoded) {
         if (err) {
             res.send({
                 code: 5,
                 message: '用户登录已过期，请重新登录'
             })
         } else {
-            conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
-                if (results.length == 0) {
-                    conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop = ? where id=?', [username, password, manager_name, user_type, workshop, editID], (err, results) => {
-                        if (err) return console.log(err.message)
-                        res.send({
-                            code: 0,
-                            message: '用户已成功编辑',
+            console.log(username);
+            if (username == undefined) {
+                conn.query('select * from user_info_list where id =? AND password =?', [decoded.id, password], (err, results) => {
+                    if (results.length == 0) {
+                        res.json({
+                            code: 1,
+                            message: '原密码错误',
                         });
-                    })
-                } else {
-                    res.send({
-                        code: 1,
-                        message: '用户名已存在，请更改后重试',
-                    });
-                }
-            });
+                    } else {
+                        conn.query('update user_info_list set password = ? where id=?', [new_password, decoded.id], (err, results) => {
+                            if (err) return console.log(err.message)
+                            res.send({
+                                code: 0,
+                                message: '密码修改成功！',
+                            });
+                        })
+                    }
+                });
+            } else {
+                conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
+                    if (results.length == 0) {
+                        conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop = ? where id=?', [username, password, manager_name, user_type, workshop, editID], (err, results) => {
+                            if (err) return console.log(err.message)
+                            res.send({
+                                code: 0,
+                                message: '用户已成功编辑',
+                            });
+                        })
+                    } else {
+                        res.send({
+                            code: 1,
+                            message: '用户名已存在，请更改后重试',
+                        });
+                    }
+                });
+            }
         }
     })
 }
