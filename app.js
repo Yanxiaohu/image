@@ -10,7 +10,7 @@ const formidable = require('formidable');
 const {trimZ} = require('./tool');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, getLogs} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -66,7 +66,9 @@ app.post('/upload', function (req, res) {
         addImage(fields, image_name, name, res);
     })
 });
-
+app.get('/getLogs', function (req, res) {
+    getLogs(req.query, res);
+})
 // 图片浏览
 app.use(express.static('uploads'));
 app.get('/uploads/*', function (req, res) {
@@ -76,7 +78,7 @@ app.get('/uploads/*', function (req, res) {
 })
 
 // ------------------- 前端路由页面 ----------------------------//
-const {index, users, images, imagesManager} = require('./routes/index');
+const {index, users, images, imagesManager, actionsLogs} = require('./routes/index');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -85,7 +87,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(index, users, images, imagesManager);
+app.use(index, users, images, imagesManager, actionsLogs);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));

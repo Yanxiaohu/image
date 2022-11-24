@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>操作日志</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+</head>
+<body>
+<div>
+    <ul class="layui-nav">
+        <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
+        <li class="layui-nav-item" id="userManager"><a href="/users">用户</a></li>
+        <li class="layui-nav-item" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item layui-this"><a href="/actionsLogs">操作日志</a></li>
+        <li class="layui-nav-item" style="float: right">
+            <a href="javascript:;"><span id="manager_name"></span></a>
+            <dl class="layui-nav-child" style="z-index: 999">
+                <dd><a id="logoutBtn">退出登录</a></dd>
+            </dl>
+        </li>
+    </ul>
+    <table id="demo" lay-filter="test"></table>
+</div>
+<!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
+<script src="/layui/layui.js"></script>
+<script>
+    layui.use(function () {
+        const layer = layui.layer;
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/isLogin', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token')},
+            success: function (res) {
+                layer.close(loadStart);
+                if (res.code != 0) {
+                    window.location.href = '/';
+                } else {
+                    if (res.user_type == 2) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerText = res.manager_name;
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.msg('网络错误，请联系管理员');
+                layer.close(loadStart);
+            }
+        });
+        document.getElementById('logoutBtn').onclick = function () {
+            layer.open({
+                title: '',
+                content: '确认退出登录吗？',
+                yes: function (index) {
+                    localStorage.setItem('token', '');
+                    window.location.href = '/';
+                    layer.close(index);
+                },
+            });
+        }
+    });
+    layui.use('table', function () {
+        const table = layui.table;
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            , url: '/getLogs' //数据接口
+            , page: true //开启分页
+            , toolbar: '#toolbarDemo',
+            defaultToolbar: []
+            , cols: [[ //表头
+                {field: 'id', title: 'ID'}
+                , {field: 'username', title: '登录用户名'}
+                , {field: 'user_type', title: '用户类型'}
+                , {field: 'workshop', title: '车间/科室'}
+                , {field: 'manager_name', title: '用户姓名'}
+                , {field: 'times', title: '登录次数'}
+                , {field: 'last_login_time', title: '近次登录'}
+                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
+            ]]
+            , done: function (res, page, count) {
+                const $ = layui.$;
+                $("[data-field='user_type']").children().each(function () {
+                    if ($(this).text() == '1') {
+                        $(this).text("超级管理员")
+                    } else if ($(this).text() == '2') {
+                        $(this).text("普通用户")
+                    }
+                })
+                $("[data-field='last_login_time']").children().each(function () {
+                    const timeNumber = $(this).text() * 1;
+                    const time = new Date(timeNumber).toLocaleString();
+                    if (timeNumber > 100) $(this).text(time)
+
+                })
+            }
+        });
+    });
+</script>
+</body>
+</html>

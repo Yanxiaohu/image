@@ -272,5 +272,21 @@ const delImage = function (body, res) {
         }
     });
 }
-
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser};
+const getLogs = function (body, res) {
+    const {page, limit} = body;
+    conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+        if (err) return console.log(err.message)
+        conn.query('select count(*) count from actions_list', (err, count) => {
+            if (err) return console.log(err.message)
+            let result = {};
+            result = {
+                code: 0,
+                count: count[0].count,
+                data: results,
+                message: '数据获取成功',
+            }
+            res.send(result);
+        })
+    })
+}
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser,getLogs};

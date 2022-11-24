@@ -12,6 +12,7 @@
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item layui-this" id="userManager"><a href="/users">用户</a></li>
         <li class="layui-nav-item" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
@@ -55,7 +56,8 @@
             <select name="user_type" lay-verify="required">
                 <option value="">请选择用户类型</option>
                 <option value="1">超级管理员</option>
-                <option value="2">普通用户</option>
+                <option value="3">增删用户</option>
+                <option value="2">查看用户</option>
             </select>
         </div>
     </div>
@@ -65,6 +67,7 @@
             <select name="workshop" lay-verify="required">
                 <option value="">请选择车间或部门</option>
                 <option value="IT科">IT科</option>
+                <option value="生产部">生产部</option>
                 <option value="型材">型材</option>
                 <option value="冲压">冲压</option>
                 <option value="总六一">总六一</option>
