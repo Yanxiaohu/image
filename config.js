@@ -236,7 +236,7 @@ const getImages = function (body, res) {
     } else {
         conn.query('select id,image_name,url,up_time,manager_name from image_info_list where image_name like ? order by id desc limit ?,? ', ['%' + image_name + '%', (page - 1) * 10, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
-            conn.query('select count(*) count from image_info_list where image_name = ?', [image_name], (err, count) => {
+            conn.query('select count(*) count from image_info_list where image_name like ?', ['%' + image_name + '%'], (err, count) => {
                 if (err) return console.log(err.message)
                 let result = {};
                 result = {
