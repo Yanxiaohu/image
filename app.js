@@ -10,7 +10,7 @@ const formidable = require('formidable');
 const {trimZ} = require('./tool');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, getLogs} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser,getLogs} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))

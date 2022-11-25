@@ -156,6 +156,9 @@
                     } else if ($(this).text() == '2') {
                         $(this).text("普通用户")
                     }
+                    if ($(this).text() == '3') {
+                        $(this).text("增删用户")
+                    }
                 })
                 $("[data-field='last_login_time']").children().each(function () {
                     const timeNumber = $(this).text() * 1;
@@ -182,7 +185,9 @@
         });
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
-            const {manager_name, username, id} = obj.data
+            let data = obj.data;
+            const {manager_name, id} = data;
+            data.del_id = id;
             if (obj.event === 'del') {
                 const message = '真的删除用户' + '<label style="color: darkred">' + manager_name + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
@@ -190,7 +195,7 @@
                     layui.$.ajax({
                         url: '/delUser', //提交接口
                         type: 'post',
-                        data: {del_id: id, token: localStorage.getItem('token')},
+                        data: {...data, token: localStorage.getItem('token')},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);

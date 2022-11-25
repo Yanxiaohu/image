@@ -80,7 +80,7 @@ const getUsers = function (body, res) {
 }
 const addUser = function (body, res) {
     const {username, password, manager_name, user_type, workshop, token} = body;
-    jwt.verify(token, secret, function (err) {
+    jwt.verify(token, secret, function (err, decoded) {
         if (err) {
             res.send({
                 code: 5,
@@ -95,6 +95,8 @@ const addUser = function (body, res) {
                             code: 0,
                             message: '用户新增成功',
                         });
+                        const {id} = decoded;
+                        conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
                     })
                 } else {
                     res.send({
@@ -115,7 +117,6 @@ const editUser = function (body, res) {
                 message: '用户登录已过期，请重新登录'
             })
         } else {
-            console.log(username);
             if (username == undefined) {
                 conn.query('select * from user_info_list where id =? AND password =?', [decoded.id, password], (err, results) => {
                     if (results.length == 0) {
@@ -143,6 +144,8 @@ const editUser = function (body, res) {
                                 message: '用户已成功编辑',
                             });
                         })
+                        const {id} = decoded;
+                        conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, id, '编辑', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
                     } else {
                         res.send({
                             code: 1,
@@ -155,7 +158,7 @@ const editUser = function (body, res) {
     })
 }
 const delUser = function (body, res) {
-    const {token, del_id} = body;
+    const {manager_name, user_type, token, del_id} = body;
     jwt.verify(token, secret, function (err, decoded) {
         if (err) {
             res.send({
@@ -175,6 +178,7 @@ const delUser = function (body, res) {
                         code: 0,
                         message: '用户已删除',
                     });
+                    conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '删除', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
                 })
             }
         }
@@ -200,6 +204,7 @@ const addImage = function (body, image_name, url, res) {
                                 , "message": "上传成功"
                             }
                         );
+                        conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '增加', image_name, '图纸', new Date().getTime()]);
                     })
                 } else {
                     res.send({
@@ -266,8 +271,9 @@ const delImage = function (body, res) {
                 })
                 res.send({
                     code: 0,
-                    message: '用户已删除',
+                    message: '图纸已删除',
                 });
+                conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '删除', image_name, '图纸', new Date().getTime()]);
             })
         }
     });
@@ -289,4 +295,4 @@ const getLogs = function (body, res) {
         })
     })
 }
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser,getLogs};
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser, getLogs};

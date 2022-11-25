@@ -34,11 +34,12 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
+                const {user_type, manager_name} = res;
                 if (res.code != 0) {
                     window.location.href = '/';
                 } else {
-                    if (res.user_type == 2) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerText = res.manager_name;
+                    if (user_type === 2) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerText = manager_name;
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -62,31 +63,22 @@
         const table = layui.table;
         //第一个实例
         table.render({
-            elem: '#demo'
-            , url: '/getLogs' //数据接口
-            , page: true //开启分页
-            , toolbar: '#toolbarDemo',
-            defaultToolbar: []
-            , cols: [[ //表头
-                {field: 'id', title: 'ID'}
-                , {field: 'username', title: '登录用户名'}
-                , {field: 'user_type', title: '用户类型'}
-                , {field: 'workshop', title: '车间/科室'}
-                , {field: 'manager_name', title: '用户姓名'}
-                , {field: 'times', title: '登录次数'}
-                , {field: 'last_login_time', title: '近次登录'}
-                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
-            ]]
-            , done: function (res, page, count) {
+            elem: '#demo',
+            url: '/getLogs',  //数据接口
+            page: true, //开启分页
+            toolbar: '#toolbarDemo',
+            defaultToolbar: [],
+            cols: [[ //表头
+                {field: 'id', title: 'ID'},
+                {field: 'manager_name', title: '操作员'},
+                {field: 'action_name', title: '行为'},
+                {field: 'change_from', title: '分类'},
+                {field: 'change_name', title: '名字'},
+                {field: 'manage_time', title: '时间'},
+            ]],
+            done: function (res, page, count) {
                 const $ = layui.$;
-                $("[data-field='user_type']").children().each(function () {
-                    if ($(this).text() == '1') {
-                        $(this).text("超级管理员")
-                    } else if ($(this).text() == '2') {
-                        $(this).text("普通用户")
-                    }
-                })
-                $("[data-field='last_login_time']").children().each(function () {
+                $("[data-field='manage_time']").children().each(function () {
                     const timeNumber = $(this).text() * 1;
                     const time = new Date(timeNumber).toLocaleString();
                     if (timeNumber > 100) $(this).text(time)
