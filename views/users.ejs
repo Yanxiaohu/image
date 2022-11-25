@@ -10,8 +10,8 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item layui-this" id="userManager"><a href="/users">用户</a></li>
-        <li class="layui-nav-item" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item layui-this"><a href="/users">用户</a></li>
+        <li class="layui-nav-item"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
@@ -104,12 +104,13 @@
             type: 'get',
             data: {token: localStorage.getItem('token')},
             success: function (res) {
+                const {code, user_type, manager_name} = res;
                 layer.close(loadStart);
-                if (res.code != 0) {
+                if (code != 0) {
                     window.location.href = '/';
                 } else {
-                    if (res.user_type == 2) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerText = res.manager_name;
+                    if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
                 }
             },
             error: function (mas, textStatus, errorThrown) {

@@ -10,8 +10,9 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item" id="userManager"><a href="/users">用户</a></li>
+        <li class="layui-nav-item" id="userManager" style="display: none"><a href="/users">用户</a></li>
         <li class="layui-nav-item layui-this" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item" id="actionsLogs" style="display: none;"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
@@ -61,11 +62,18 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                if (res.code != 0) {
+                const {code, user_type, manager_name} = res;
+                if (code != 0) {
                     window.location.href = '/';
                 } else {
-                    if (res.user_type == 2) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerText = res.manager_name;
+                    if (user_type == 2) window.location.href = '/imagesShow';
+                    let star = 'layui-icon-rate-half';
+                    if (user_type === 1) {
+                        document.getElementById('userManager').style.display = 'inline-block';
+                        document.getElementById('actionsLogs').style.display = 'inline-block';
+                        star = 'layui-icon-rate-solid';
+                    }
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
                 }
             },
             error: function (mas, textStatus, errorThrown) {

@@ -10,10 +10,11 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item layui-this"><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item" id="userManager"><a href="/users">用户</a></li>
-        <li class="layui-nav-item " id="imageManager"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户</a></li>
+        <li class="layui-nav-item " id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item " id="actionsLogs" style="display: none"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
-            <a href="javascript:;"><span id="username"></span></a>
+            <a href="javascript:;"><span id="manager_name"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
                 <dd><a href="javascript:" id="fixPasswordBtn">修改密码</a></dd>
                 <dd><a href="javascript:" id="logoutBtn">退出登录</a></dd>
@@ -62,9 +63,19 @@
                 if (res.code != 0) {
                     window.location.href = '/';
                 } else {
-                    user_type === 2 ? document.getElementById('imageManager').style.display = 'none' : '';
-                    user_type === 2 ? document.getElementById('userManager').style.display = 'none' : '';
-                    document.getElementById('username').innerText = manager_name;
+                    let star = '';
+                    if (user_type === 1) {
+                        document.getElementById('imageManager').style.display = 'inline-block';
+                        document.getElementById('userManager').style.display = 'inline-block';
+                        document.getElementById('actionsLogs').style.display = 'inline-block';
+                        star = 'layui-icon-rate-solid';
+                    } else if (user_type === 3) {
+                        document.getElementById('imageManager').style.display = 'inline-block';
+                        star = 'layui-icon-rate-half';
+                    } else {
+                        star = 'layui-icon-rate';
+                    }
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
                 }
             },
             error: function (mas, textStatus, errorThrown) {
