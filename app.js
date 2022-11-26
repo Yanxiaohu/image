@@ -7,7 +7,18 @@ const app = express();
 const bodyParser = require('body-parser');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser,getLogs,uploads} = require('./config');
+const {
+    login,
+    isLogin,
+    getUsers,
+    addUser,
+    delUser,
+    getImages,
+    delImage,
+    editUser,
+    getLogs,
+    uploads
+} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -40,7 +51,7 @@ app.post('/delImage', function (req, res) {
     delImage(req.body, res);
 })
 app.post('/upload', function (req, res) {
-  uploads(req,res);
+    uploads(req, res);
 });
 app.get('/getLogs', function (req, res) {
     getLogs(req.query, res);

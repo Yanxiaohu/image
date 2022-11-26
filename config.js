@@ -187,6 +187,46 @@ const delUser = function (body, res) {
         }
     })
 }
+const  uploads = function (req,res){
+    //创建formidable表单解析对象
+    const form = new formidable.IncomingForm();
+    //保留上传文件的后缀名字
+    form.keepExtensions = true;
+    //设置上传文件的保存路径
+    form.uploadDir = path.join(__dirname, 'uploads');
+    //解析客户端传递过来的formData对象
+    form.parse(req, (err, fields, files) => {
+        //req:请求对象，err错误对象，filelds：普通请求参数的内容
+        //files：文件的内容的参数包括保存的地址信息
+        //成功之后响应一个ok
+        const image_name = files.file.originalFilename;
+        let oldPath = files.file.newFilename;
+        conn.query('select count(*) count from image_info_list where image_name = ?',[image_name], (err, count) => {
+            if (err) return console.log(err.message)
+            if (count[0].count == 0){
+                const name = './uploads/' + trimZ(image_name);
+                oldPath = './uploads/' + oldPath;
+                fs.rename(oldPath, name, function (err) {
+                    if (err) {
+                        console.error("改名失败" + err);
+                    }
+                })
+                addImage(fields, image_name, name, res);
+            } else {
+                fs.unlink('./uploads/' + oldPath, function (error) {
+                    if (error) {
+                        console.log(error);
+                        return false;
+                    }
+                })
+                res.send({
+                    code: 3,
+                    message: image_name,
+                });
+            }
+        })
+    })
+}
 const addImage = function (body, image_name, url, res) {
     const {token} = body;
     jwt.verify(token, secret, function (err, decoded) {
@@ -211,8 +251,8 @@ const addImage = function (body, image_name, url, res) {
                     })
                 } else {
                     res.send({
-                        code: 1,
-                        message: '图片名重复，请确认后上传',
+                        code: 3,
+                        message: image_name,
                     });
                 }
             });
@@ -296,30 +336,6 @@ const getLogs = function (body, res) {
             }
             res.send(result);
         })
-    })
-}
-const  uploads = function (req,res){
-    //创建formidable表单解析对象
-    const form = new formidable.IncomingForm();
-    //保留上传文件的后缀名字
-    form.keepExtensions = true;
-    //设置上传文件的保存路径
-    form.uploadDir = path.join(__dirname, 'uploads');
-    //解析客户端传递过来的formData对象
-    form.parse(req, (err, fields, files) => {
-        //req:请求对象，err错误对象，filelds：普通请求参数的内容
-        //files：文件的内容的参数包括保存的地址信息
-        //成功之后响应一个ok
-        let oldPath = files.file.newFilename;
-        oldPath = './uploads/' + oldPath;
-        const image_name = files.file.originalFilename;
-        const name = './uploads/' + trimZ(image_name);
-        fs.rename(oldPath, name, function (err) {
-            if (err) {
-                console.error("改名失败" + err);
-            }
-        })
-        addImage(fields, image_name, name, res);
     })
 }
 module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser, getLogs,uploads};
