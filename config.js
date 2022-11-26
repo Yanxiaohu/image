@@ -7,7 +7,10 @@ const conn = mysql.createConnection({
     database: 'my_db_02'
 })
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const fs = require('fs');
+const formidable = require('formidable');
+const {trimZ} = require("./tool");
 const secret = 'YanchenImageManager';
 const login = function (body, ip, res) {
     const {username, password} = body;
@@ -217,7 +220,7 @@ const addImage = function (body, image_name, url, res) {
     })
 }
 const getImages = function (body, res) {
-    const {page, limit, image_name} = body;
+    const {page = 1, limit = 10, image_name} = body;
     if (image_name === undefined) {
         conn.query('select id,image_name,url,up_time,manager_name from image_info_list order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
@@ -280,7 +283,7 @@ const delImage = function (body, res) {
 }
 const getLogs = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+    conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from actions_list', (err, count) => {
             if (err) return console.log(err.message)
@@ -295,4 +298,28 @@ const getLogs = function (body, res) {
         })
     })
 }
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser, getLogs};
+const  uploads = function (req,res){
+    //创建formidable表单解析对象
+    const form = new formidable.IncomingForm();
+    //保留上传文件的后缀名字
+    form.keepExtensions = true;
+    //设置上传文件的保存路径
+    form.uploadDir = path.join(__dirname, 'uploads');
+    //解析客户端传递过来的formData对象
+    form.parse(req, (err, fields, files) => {
+        //req:请求对象，err错误对象，filelds：普通请求参数的内容
+        //files：文件的内容的参数包括保存的地址信息
+        //成功之后响应一个ok
+        let oldPath = files.file.newFilename;
+        oldPath = './uploads/' + oldPath;
+        const image_name = files.file.originalFilename;
+        const name = './uploads/' + trimZ(image_name);
+        fs.rename(oldPath, name, function (err) {
+            if (err) {
+                console.error("改名失败" + err);
+            }
+        })
+        addImage(fields, image_name, name, res);
+    })
+}
+module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser, getLogs,uploads};

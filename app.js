@@ -3,14 +3,11 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const fs = require('fs');
 const app = express();
 const bodyParser = require('body-parser');
-const formidable = require('formidable');
-const {trimZ} = require('./tool');
 
 // ------------------- 请求数据库操作 ----------------------------//
-const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser,getLogs} = require('./config');
+const {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser,getLogs,uploads} = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
 app.use(bodyParser.urlencoded({extends: false}))
@@ -43,28 +40,7 @@ app.post('/delImage', function (req, res) {
     delImage(req.body, res);
 })
 app.post('/upload', function (req, res) {
-    //创建formidable表单解析对象
-    const form = new formidable.IncomingForm();
-    //保留上传文件的后缀名字
-    form.keepExtensions = true;
-    //设置上传文件的保存路径
-    form.uploadDir = path.join(__dirname, 'uploads');
-    //解析客户端传递过来的formData对象
-    form.parse(req, (err, fields, files) => {
-        //req:请求对象，err错误对象，filelds：普通请求参数的内容
-        //files：文件的内容的参数包括保存的地址信息
-        //成功之后响应一个ok
-        let oldPath = files.file.newFilename;
-        oldPath = './uploads/' + oldPath;
-        const image_name = files.file.originalFilename;
-        const name = './uploads/' + trimZ(image_name);
-        fs.rename(oldPath, name, function (err) {
-            if (err) {
-                console.error("改名失败" + err);
-            }
-        })
-        addImage(fields, image_name, name, res);
-    })
+  uploads(req,res);
 });
 app.get('/getLogs', function (req, res) {
     getLogs(req.query, res);
