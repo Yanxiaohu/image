@@ -187,7 +187,7 @@ const delUser = function (body, res) {
         }
     })
 }
-const  uploads = function (req,res){
+const uploads = function (req, res) {
     //创建formidable表单解析对象
     const form = new formidable.IncomingForm();
     //保留上传文件的后缀名字
@@ -201,9 +201,9 @@ const  uploads = function (req,res){
         //成功之后响应一个ok
         const image_name = files.file.originalFilename;
         let oldPath = files.file.newFilename;
-        conn.query('select count(*) count from image_info_list where image_name = ?',[image_name], (err, count) => {
+        conn.query('select count(*) count from image_info_list where image_name = ?', [image_name], (err, count) => {
             if (err) return console.log(err.message)
-            if (count[0].count == 0){
+            if (count[0].count == 0) {
                 const name = './uploads/' + trimZ(image_name);
                 oldPath = './uploads/' + oldPath;
                 fs.rename(oldPath, name, function (err) {
@@ -238,7 +238,7 @@ const addImage = function (body, image_name, url, res) {
         } else {
             conn.query('select * from image_info_list where image_name = ?', [image_name], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('INSERT INTO image_info_list (image_name, manager_name, up_time,url) VALUES (?, ?, ?,?)', [image_name, '颜虎', new Date().getTime()
+                    conn.query('INSERT INTO image_info_list (manager_id,image_name, manager_name, up_time,url) VALUES (?,?, ?, ?,?)', [decoded.id, image_name, '颜虎', new Date().getTime()
                         , url], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send(
@@ -338,4 +338,16 @@ const getLogs = function (body, res) {
         })
     })
 }
-module.exports = {login, isLogin, getUsers, addUser, delUser, addImage, getImages, delImage, editUser, getLogs,uploads};
+module.exports = {
+    login,
+    isLogin,
+    getUsers,
+    addUser,
+    delUser,
+    addImage,
+    getImages,
+    delImage,
+    editUser,
+    getLogs,
+    uploads
+};

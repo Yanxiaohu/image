@@ -59,7 +59,6 @@ app.get('/getLogs', function (req, res) {
 // 图片浏览
 app.use(express.static('uploads'));
 app.get('/uploads/*', function (req, res) {
-    console.log(req);
     res.sendFile(__dirname + "/" + req.url);
     // console.log("Request for " + req.url + " received.");
 })
