@@ -20,6 +20,14 @@
             </dl>
         </li>
     </ul>
+    <form class="layui-form" action="" style="padding: 0;width: 200px;margin-top: 10px">
+        <div class="layui-form-item" style="margin-bottom: 0">
+            <div class="layui-input-block" style="margin-left: 0">
+                <select name="id" id="manager_names" lay-filter="manager_names">
+                </select>
+            </div>
+        </div>
+    </form>
     <table id="demo" lay-filter="test"></table>
 </div>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
@@ -58,20 +66,51 @@
                 },
             });
         }
+        layui.$.ajax({
+            url: '/getUsers', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
+            success: function (res) {
+                const {data = []} = res;
+                let select = document.getElementById('manager_names');
+                const option = document.createElement("option");
+                option.setAttribute("value", '');
+                option.innerText = '全部';
+                select.appendChild(option)
+                for (const i in data) {
+                    const option = document.createElement("option");
+                    option.setAttribute("value", data[i].id);
+                    option.innerText = data[i].manager_name;
+                    select.appendChild(option)
+                }
+                layui.use('form', function () {
+                    const form = layui.form;
+                    form.render("select");
+                });
+            }
+        });
+        layui.form.on('select(manager_names)', function (data) {
+            tableRender(data.value)
+        });
     });
+
     layui.use('table', function () {
-        const table = layui.table;
         //第一个实例
+        tableRender();
+    });
+    const tableRender = function (manager_id) {
+        const table = layui.table;
         table.render({
             elem: '#demo',
             url: '/getLogs',  //数据接口
             page: true, //开启分页
             defaultToolbar: [],
+            where: {manager_id},
             cols: [[ //表头
-                {field: 'id', title: 'ID',width: 80},
-                {field: 'manager_name', title: '操作员',width: 120},
-                {field: 'action_name', title: '行为',width: 100},
-                {field: 'change_from', title: '分类',width: 100},
+                {field: 'id', title: 'ID', width: 80},
+                {field: 'manager_name', title: '操作员', width: 120},
+                {field: 'action_name', title: '行为', width: 100},
+                {field: 'change_from', title: '分类', width: 100},
                 {field: 'change_name', title: '名字'},
                 {field: 'manage_time', title: '时间'},
             ]],
@@ -81,11 +120,10 @@
                     const timeNumber = $(this).text() * 1;
                     const time = new Date(timeNumber).toLocaleString();
                     if (timeNumber > 100) $(this).text(time)
-
                 })
             }
         });
-    });
+    }
 </script>
 </body>
 </html>

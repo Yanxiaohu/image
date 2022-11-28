@@ -68,7 +68,6 @@ const isLogin = function (body, ip, res) {
                             message: '您已被停用，请联系管理员',
                         })
                     }
-
                 } else {
                     res.send({
                         code: 5,
@@ -337,21 +336,38 @@ const delImage = function (body, res) {
     });
 }
 const getLogs = function (body, res) {
-    const {page, limit} = body;
-    conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
-        if (err) return console.log(err.message)
-        conn.query('select count(*) count from actions_list', (err, count) => {
+    const {page, limit, manager_id} = body;
+    if (manager_id == undefined || manager_id == '') {
+        conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list  order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
-            let result = {};
-            result = {
-                code: 0,
-                count: count[0].count,
-                data: results,
-                message: '数据获取成功',
-            }
-            res.send(result);
+            conn.query('select count(*) count from actions_list', (err, count) => {
+                if (err) return console.log(err.message)
+                let result = {};
+                result = {
+                    code: 0,
+                    count: count[0].count,
+                    data: results,
+                    message: '数据获取成功',
+                }
+                res.send(result);
+            })
         })
-    })
+    } else {
+        conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list where manager_id=? order by id desc limit ?,?', [manager_id, (page - 1) * limit, limit * 1], (err, results) => {
+            if (err) return console.log(err.message)
+            conn.query('select count(*) count from actions_list where manager_id=?',[manager_id], (err, count) => {
+                if (err) return console.log(err.message)
+                let result = {};
+                result = {
+                    code: 0,
+                    count: count[0].count,
+                    data: results,
+                    message: '数据获取成功',
+                }
+                res.send(result);
+            })
+        })
+    }
 }
 module.exports = {
     login,
