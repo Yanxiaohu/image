@@ -14,7 +14,7 @@ const {trimZ} = require("./tool");
 const secret = 'YanchenImageManager';
 const login = function (body, ip, res) {
     const {username, password} = body;
-    conn.query('select manager_name,id,user_type,username,times from user_info_list where username =? AND password =?', [username, password], (err, results) => {
+    conn.query('select manager_name,id,user_type,username,times,is_work from user_info_list where username =? AND password =?', [username, password], (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0) {
@@ -25,16 +25,23 @@ const login = function (body, ip, res) {
             res.json(result);
         } else {
             const cache = results[0];
-            const rule = {...cache};
-            rule.ip_info = ip;
-            const times = rule.times ? rule.times + 1 : 1;
-            conn.query('update user_info_list set ip_info=?,last_login_time = ?,times = ? where id=?', [ip, new Date().getTime(), times, cache.id]);
-            jwt.sign(rule, secret, {expiresIn: "10h"}, function (err, token) {
-                //"Bearer" token前缀
-                token = token
-                //返回token
-                res.json({token, message: '登录成功！', code: 0})
-            })
+            if (cache.is_work === 1) {
+                const rule = {...cache};
+                rule.ip_info = ip;
+                const times = rule.times ? rule.times + 1 : 1;
+                conn.query('update user_info_list set ip_info=?,last_login_time = ?,times = ? where id=?', [ip, new Date().getTime(), times, cache.id]);
+                jwt.sign(rule, secret, {expiresIn: "10h"}, function (err, token) {
+                    //"Bearer" token前缀
+                    token = token
+                    //返回token
+                    res.json({token, message: '登录成功！', code: 0})
+                })
+            } else {
+                res.send({
+                    code: 3,
+                    message: '您已被停用，请联系管理员',
+                })
+            }
         }
     })
 }
@@ -47,13 +54,21 @@ const isLogin = function (body, ip, res) {
                 message: '用户登录已过期，请重新登录'
             })
         } else {
-            conn.query('select * from user_info_list where ip_info =? AND id =?', [ip, decoded.id], (err, results) => {
+            conn.query('select is_work from user_info_list where ip_info =? AND id =?', [ip, decoded.id], (err, results) => {
                 if (results != undefined && results.length >= 1) {
-                    res.send({
-                        code: 0,
-                        ...decoded,
-                        message: '用户在有效期'
-                    })
+                    if (results[0].is_work === 1) {
+                        res.send({
+                            code: 0,
+                            ...decoded,
+                            message: '用户在有效期'
+                        })
+                    } else {
+                        res.send({
+                            code: 3,
+                            message: '您已被停用，请联系管理员',
+                        })
+                    }
+
                 } else {
                     res.send({
                         code: 5,
@@ -66,7 +81,7 @@ const isLogin = function (body, ip, res) {
 }
 const getUsers = function (body, res) {
     const {page, limit} = body;
-    conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time,password from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+    conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time,password,is_work from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
         if (err) return console.log(err.message)
         conn.query('select count(*) count from user_info_list', (err, count) => {
             if (err) return console.log(err.message)
@@ -82,7 +97,7 @@ const getUsers = function (body, res) {
     })
 }
 const addUser = function (body, res) {
-    const {username, password, manager_name, user_type, workshop, token} = body;
+    const {username, password, manager_name, user_type, workshop, token, is_work} = body;
     jwt.verify(token, secret, function (err, decoded) {
         if (err) {
             res.send({
@@ -92,7 +107,7 @@ const addUser = function (body, res) {
         } else {
             conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('INSERT INTO user_info_list (username, password, manager_name, user_type,workshop) VALUES (?, ?, ?, ?,?)', [username, password, manager_name, user_type, workshop], (err, results) => {
+                    conn.query('INSERT INTO user_info_list (username, password, manager_name, user_type,workshop,is_work) VALUES (?, ?, ?, ?,?)', [username, password, manager_name, user_type, workshop], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -112,7 +127,7 @@ const addUser = function (body, res) {
     })
 }
 const editUser = function (body, res) {
-    const {username, password, manager_name, user_type, workshop, editID, token, new_password} = body;
+    const {username, password, manager_name, user_type, workshop, editID, token, new_password, is_work} = body;
     jwt.verify(token, secret, function (err, decoded) {
         if (err) {
             res.send({
@@ -140,7 +155,7 @@ const editUser = function (body, res) {
             } else {
                 conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
                     if (results.length == 0) {
-                        conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop = ? where id=?', [username, password, manager_name, user_type, workshop, editID], (err, results) => {
+                        conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop = ?,is_work=? where id=?', [username, password, manager_name, user_type, workshop, is_work, editID], (err, results) => {
                             if (err) return console.log(err.message)
                             res.send({
                                 code: 0,

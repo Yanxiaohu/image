@@ -88,6 +88,15 @@
                    class="layui-input">
         </div>
     </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="is_work" lay-verify="required">
+                <option value="1">在用</option>
+                <option value="0">停用</option>
+            </select>
+        </div>
+    </div>
     <div class="layui-form-item" style="margin-top: 100px">
         <div class="layui-input-block">
             <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
@@ -140,12 +149,13 @@
             , toolbar: '#toolbarDemo',
             defaultToolbar: []
             , cols: [[ //表头
-                {field: 'id', title: 'ID',width: 80}
-                , {field: 'username', title: '登录用户名',width: 120}
-                , {field: 'user_type', title: '用户类型',width: 100}
-                , {field: 'workshop', title: '车间/科室',width: 100}
+                {field: 'id', title: 'ID', width: 80}
+                , {field: 'username', title: '登录用户名', width: 120}
+                , {field: 'user_type', title: '用户类型', width: 100}
+                , {field: 'workshop', title: '车间/科室', width: 100}
                 , {field: 'manager_name', title: '用户姓名'}
-                , {field: 'times', title: '登录次数',width: 86}
+                , {field: 'is_work', title: '是否在用', width: 86}
+                , {field: 'times', title: '登录次数', width: 86}
                 , {field: 'last_login_time', title: '近次登录'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
@@ -158,13 +168,21 @@
                         $(this).text("普通用户")
                     }
                     if ($(this).text() == '3') {
-                        $(this).text("增删用户")
+                        $(this).text("生产用户")
                     }
                 })
                 $("[data-field='last_login_time']").children().each(function () {
                     const timeNumber = $(this).text() * 1;
                     const time = new Date(timeNumber).toLocaleString();
                     if (timeNumber > 100) $(this).text(time)
+
+                })
+                $("[data-field='is_work']").children().each(function () {
+                    if ($(this).text() == '1') {
+                        $(this).text("在用")
+                    } else if ($(this).text() == '0') {
+                        $(this).text("停用")
+                    }
 
                 })
             }
