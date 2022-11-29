@@ -146,8 +146,9 @@
             elem: '#demo'
             , url: '/getUsers' //数据接口
             , page: true //开启分页
-            , toolbar: '#toolbarDemo',
-            defaultToolbar: []
+            , toolbar: '#toolbarDemo'
+            , where: {token: localStorage.getItem('token')}
+            , defaultToolbar: []
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'username', title: '登录用户名', width: 120}

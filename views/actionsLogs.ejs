@@ -105,7 +105,7 @@
             url: '/getLogs',  //数据接口
             page: true, //开启分页
             defaultToolbar: [],
-            where: {manager_id},
+            where: {manager_id, token: localStorage.getItem('token')},
             cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80},
                 {field: 'manager_name', title: '操作员', width: 120},

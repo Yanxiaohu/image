@@ -142,7 +142,7 @@
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name}
+            , where: {image_name,token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
                 , {field: 'image_name', title: '图纸名称'}

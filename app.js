@@ -17,7 +17,8 @@ const {
     delImage,
     editUser,
     getLogs,
-    uploads
+    uploads,
+    verifyToken,
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
@@ -32,29 +33,29 @@ app.get('/isLogin', function (req, res) {
 })
 //写方法拉去数据
 app.get('/getUsers', function (req, res) {
-    getUsers(req.query, res);
+    getUsers(req, res);
 })
 app.post('/addUser', function (req, res) {
-    addUser(req.body, res);
+    addUser(req, res);
 })
 app.post('/editUser', function (req, res) {
-    editUser(req.body, res);
+    editUser(req, res);
 })
 app.post('/delUser', function (req, res) {
-    delUser(req.body, res);
+    delUser(req, res);
 })
 
 app.get('/getImages', function (req, res) {
-    getImages(req.query, res);
+    getImages(req, res);
 })
 app.post('/delImage', function (req, res) {
-    delImage(req.body, res);
+    delImage(req, res);
 })
 app.post('/upload', function (req, res) {
     uploads(req, res);
 });
 app.get('/getLogs', function (req, res) {
-    getLogs(req.query, res);
+    getLogs(req, res);
 })
 // 图片浏览
 app.use(express.static('uploads'));
