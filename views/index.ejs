@@ -41,9 +41,7 @@
             type: 'get',
             data: {token: localStorage.getItem('token')},
             success: function (res) {
-                if (res.code == 0)  {
-                    window.location.href = '/imagesShow';
-                }
+                if (res.code == 0) window.location.href = '/imagesShow';
             },
             error: function (mas, textStatus, errorThrown) {
                 layer.msg('网络错误，请联系管理员');
@@ -61,8 +59,8 @@
                     layer.close(loadStart);
                     layer.msg(JSON.stringify(res.message), {icon: res.code});
                     if (res.code == 0) {
-                        localStorage.setItem('token',res.token)
-                        document.location.href='/imagesShow';
+                        localStorage.setItem('token', res.token)
+                        document.location.href = '/imagesShow';
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {

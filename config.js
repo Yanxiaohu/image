@@ -47,36 +47,12 @@ const login = function (body, ip, res) {
 }
 const isLogin = function (body, ip, res) {
     const {token} = body;
-    jwt.verify(token, secret, function (err, decoded) {
-        if (err) {
-            res.send({
-                code: 5,
-                message: '用户登录已过期，请重新登录'
-            })
-        } else {
-            conn.query('select is_work from user_info_list where ip_info =? AND id =?', [ip, decoded.id], (err, results) => {
-                if (results != undefined && results.length >= 1) {
-                    if (results[0].is_work === 1) {
-                        res.send({
-                            code: 0,
-                            ...decoded,
-                            message: '用户在有效期'
-                        })
-                    } else {
-                        res.send({
-                            code: 3,
-                            message: '您已被停用，请联系管理员',
-                        })
-                    }
-                } else {
-                    res.send({
-                        code: 5,
-                        message: '用户登录已过期，请重新登录'
-                    })
-                }
-            });
-        }
-    })
+    const work = function () {
+        res.send({
+            code: 0,
+        })
+    }
+    verifyToken(token, ip, res, work);
 }
 const verifyToken = function (token, ip, res, work) {
     jwt.verify(token, secret, function (err, decoded) {
@@ -377,5 +353,5 @@ module.exports = {
     editUser,
     getLogs,
     uploads,
-    isLogin, verifyToken
+    isLogin,
 };

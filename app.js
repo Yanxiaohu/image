@@ -18,7 +18,6 @@ const {
     editUser,
     getLogs,
     uploads,
-    verifyToken,
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
