@@ -59,10 +59,8 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name} = res;
-                if (res.code != 0) {
-                    window.location.href = '/';
-                } else {
+                const {user_type, manager_name, code, message} = res;
+                if (code == 0) {
                     let star = '';
                     if (user_type === 1) {
                         document.getElementById('imageManager').style.display = 'inline-block';
@@ -76,6 +74,9 @@
                         star = 'layui-icon-rate';
                     }
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
+                    tableRender();
+                } else {
+                    condeMessage(code, message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -88,9 +89,8 @@
                 title: '',
                 content: '确认推出登录吗？',
                 yes: function (index) {
-                    localStorage.setItem('token', '');
-                    window.location.href = '/';
                     layer.close(index);
+                    clearUserInfo();
                 },
             });
         }
@@ -115,30 +115,23 @@
                 type: 'post',
                 data: {...data.field, token: localStorage.getItem('token')},
                 success: function (res) {
-                    if (res.code == 5) {
-                        window.location.href = '/';
-                        layer.close(loadStart);
-                    } else if (res.code == 0) {
+                    layer.close(loadStart);
+                    const {code, message} = res;
+                    if (code == 0) {
                         layer.msg(JSON.stringify(res.message), {icon: 0}, function () {
-                            localStorage.setItem('token', '');
-                            window.location.href = '/';
-                            layer.close(loadStart);
+                            clearUserInfo();
                         });
                     } else {
-                        layer.msg(JSON.stringify(res.message), {icon: 0});
-                        layer.close(loadStart);
+                        condeMessage(code, message)
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {
-                    layer.msg('网络错误，请联系管理员');
                     layer.close(loadStart);
+                    layer.msg('网络错误，请联系管理员');
                 }
             });
             return false;
         });
-    });
-    layui.use('table', function () {
-        tableRender();
     });
     const tableRender = function (image_name) {
         const table = layui.table;
@@ -146,7 +139,7 @@
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name,token: localStorage.getItem('token')}
+            , where: {image_name, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
                 , {field: 'image_name', title: '图片名称'}
@@ -155,12 +148,18 @@
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
-                const $ = layui.$;
-                $("[data-field='up_time']").children().each(function () {
-                    const timeNumber = $(this).text() * 1;
-                    const time = new Date(timeNumber).toLocaleString();
-                    if (timeNumber > 100) $(this).text(time)
-                })
+                const {code, message} = res;
+                if (code == 0) {
+                    const $ = layui.$;
+                    $("[data-field='up_time']").children().each(function () {
+                        const timeNumber = $(this).text() * 1;
+                        const time = new Date(timeNumber).toLocaleString();
+                        if (timeNumber > 100) $(this).text(time)
+                    })
+                } else {
+                    condeMessage(code, message);
+                }
+
             }
         };
         if (image_name) {
@@ -173,6 +172,30 @@
             const {url} = obj.data
             window.open(url, '_blank');
         });
+    }
+    const condeMessage = function (code, message) {
+        if (code == 5) {
+            layer.open({
+                title: '',
+                content: '用户登录已过期，请重新登录。',
+                yes: function (index) {
+                    clearUserInfo();
+                },
+            });
+        }
+        if (code == 3) {
+            layer.open({
+                title: '',
+                content: message,
+            });
+        }
+        if (code == 1) {
+            layer.msg(JSON.stringify(message), {icon: code});
+        }
+    }
+    const clearUserInfo = function () {
+        localStorage.setItem('token', '');
+        window.location.href = '/';
     }
 </script>
 <form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""

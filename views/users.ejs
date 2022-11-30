@@ -219,12 +219,11 @@
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);
+                            const {code,message} =res;
                             if (res.code == 0) {
                                 obj.del();
-                            } else if (res.code == 5) {
-                                window.location.href = '/';
-                            } else {
-                                layer.msg(JSON.stringify(res.message), {icon: 2});
+                            }else {
+                                condeMessage(code,message);
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -261,13 +260,12 @@
                 data: {...data.field, token: localStorage.getItem('token')},
                 success: function (res) {
                     layer.close(loadStart);
-                    if (res.code == 5) {
-                        window.location.href = '/';
-                    } else if (res.code == 0) {
-                        window.location.href = '';
-                    } else {
-                        layer.msg(JSON.stringify(res.message), {icon: 0});
-                    }
+                    const {code,message} = res;
+                   if (code == 0){
+                       window.location.href = '';
+                   } else {
+                       condeMessage(code,message);
+                   }
                 },
                 error: function (mas, textStatus, errorThrown) {
                     layer.msg('网络错误，请联系管理员');
@@ -277,6 +275,38 @@
             return false;
         });
     });
+    const condeMessage = function (code, message) {
+        if (code == 5) {
+            layer.open({
+                title: '',
+                content: '用户登录已过期，请重新登录。',
+                yes: function (index) {
+                    clearUserInfo();
+                },
+            });
+        }
+        if (code == 3) {
+            layer.open({
+                title: '',
+                content: message,
+            });
+        }
+        if (code == 1) {
+            layer.msg(JSON.stringify(message), {icon: code});
+        } else {
+            layer.open({
+                title: 'CODE码是'+code,
+                content: message,
+                yes: function (index) {
+                    clearUserInfo();
+                },
+            });
+        }
+    }
+    const clearUserInfo = function () {
+        localStorage.setItem('token', '');
+        window.location.href = '/';
+    }
 </script>
 </body>
 </html>

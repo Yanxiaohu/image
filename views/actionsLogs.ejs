@@ -42,12 +42,13 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name} = res;
-                if (res.code != 0) {
-                    window.location.href = '/';
-                } else {
+                const {user_type, manager_name, code, message} = res;
+                if (code == 0) {
                     if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                    tableRender();
+                } else {
+                    condeMessage(code, message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -60,8 +61,7 @@
                 title: '',
                 content: '确认退出登录吗？',
                 yes: function (index) {
-                    localStorage.setItem('token', '');
-                    window.location.href = '/';
+                    clearUserInfo();
                     layer.close(index);
                 },
             });
@@ -94,10 +94,6 @@
         });
     });
 
-    layui.use('table', function () {
-        //第一个实例
-        tableRender();
-    });
     const tableRender = function (manager_id) {
         const table = layui.table;
         table.render({
@@ -115,14 +111,44 @@
                 {field: 'manage_time', title: '时间'},
             ]],
             done: function (res, page, count) {
-                const $ = layui.$;
-                $("[data-field='manage_time']").children().each(function () {
-                    const timeNumber = $(this).text() * 1;
-                    const time = new Date(timeNumber).toLocaleString();
-                    if (timeNumber > 100) $(this).text(time)
-                })
+                const {code, message} = res;
+                if (code == 0) {
+                    const $ = layui.$;
+                    $("[data-field='manage_time']").children().each(function () {
+                        const timeNumber = $(this).text() * 1;
+                        const time = new Date(timeNumber).toLocaleString();
+                        if (timeNumber > 100) $(this).text(time)
+                    })
+                }else {
+                    condeMessage(code,message);
+                }
             }
         });
+    }
+
+    const condeMessage = function (code, message) {
+        if (code == 5) {
+            layer.open({
+                title: '',
+                content: '用户登录已过期，请重新登录。',
+                yes: function (index) {
+                    clearUserInfo();
+                },
+            });
+        }
+        if (code == 3) {
+            layer.open({
+                title: '',
+                content: message,
+            });
+        }
+        if (code == 1) {
+            layer.msg(JSON.stringify(message), {icon: code});
+        }
+    }
+    const clearUserInfo = function () {
+        localStorage.setItem('token', '');
+        window.location.href = '/';
     }
 </script>
 </body>

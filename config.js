@@ -47,10 +47,24 @@ const login = function (body, ip, res) {
 }
 const isLogin = function (body, ip, res) {
     const {token} = body;
-    const work = function () {
-        res.send({
-            code: 0,
-        })
+    const work = function (decoded) {
+        conn.query('select manager_name,user_type from user_info_list where  id =?', [decoded.id], (err, results) => {
+            if (err) return console.log(err.message)
+            if (results.length == 1) {
+                const cache = results[0];
+                const {manager_name, user_type} = cache;
+                res.send({
+                    code: 0,
+                    manager_name,
+                    user_type,
+                })
+            } else {
+                res.send({
+                    code: 3,
+                    message: '用户数据异常，请联系管理员'
+                })
+            }
+        });
     }
     verifyToken(token, ip, res, work);
 }
