@@ -298,8 +298,13 @@
                 title: 'CODE码是'+code,
                 content: message,
                 yes: function (index) {
+                    layer.close(index)
                     clearUserInfo();
                 },
+                cancel: function(index){
+                    layer.close(index)
+                    clearUserInfo();
+                }
             });
         }
     }

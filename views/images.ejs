@@ -181,6 +181,10 @@
                 yes: function (index) {
                     clearUserInfo();
                 },
+                cancel: function(index){
+                    layer.close(index)
+                    clearUserInfo();
+                }
             });
         }
         if (code == 3) {

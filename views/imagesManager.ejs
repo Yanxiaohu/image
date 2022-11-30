@@ -64,9 +64,9 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {code, user_type, manager_name} = res;
+                const {code, user_type, manager_name,message} = res;
                 if (code != 0) {
-                    window.location.href = '/';
+                    condeMessage(code,message)
                 } else {
                     if (user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
@@ -76,6 +76,7 @@
                         star = 'layui-icon-rate-solid';
                     }
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
+                    tableRender();
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -88,8 +89,7 @@
                 title: '',
                 content: '确认推出登录吗？',
                 yes: function (index) {
-                    localStorage.setItem('token', '');
-                    window.location.href = '/';
+                    clearUserInfo();
                     layer.close(index);
                 },
             });
@@ -109,20 +109,8 @@
                 //上传完毕回调
                 const {code, message} = res;
                 layer.closeAll('loading'); //关闭loading
-                if (code == 5) {
-                    window.location.href = '/';
-                } else {
-                    if (code == 3) {
-                        layer.open({
-                            title: '提示'
-                            ,
-                            content: '图纸' + '<span style="color: darkred">' + message + '</span>' + '已存在，请更改名字或删除源文件后上传'
-                        });
-                    } else {
-                        layer.msg(res.message, function () {
-                            history.go(0);
-                        });
-                    }
+                if (code != 0) {
+                    condeMessage(code,'图纸' + '<span style="color: darkred">' + message + '</span>' + '已存在，请更改名字或删除源文件后上传');
                 }
             }
             , error: function (err) {
@@ -132,9 +120,6 @@
             }
             , accept: 'file'
         });
-    });
-    layui.use('table', function () {
-        tableRender();
     });
     const tableRender = function (image_name) {
         const table = layui.table;
@@ -182,10 +167,8 @@
                             layer.close(index);
                             if (res.code == 0) {
                                 obj.del();
-                            } else if (res.code == 5) {
-                                window.location.href = '/';
                             } else {
-                                layer.msg(JSON.stringify(res.message), {icon: 2});
+                                condeMessage(res.code,res.message)
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -199,6 +182,34 @@
                 window.open(url, '_blank');
             }
         });
+    }
+    const condeMessage = function (code, message) {
+        if (code == 5) {
+            layer.open({
+                title: '',
+                content: '用户登录已过期，请重新登录。',
+                yes: function (index) {
+                    clearUserInfo();
+                },
+                cancel: function(index){
+                    layer.close(index)
+                    clearUserInfo();
+                }
+            });
+        }
+        if (code == 3) {
+            layer.open({
+                title: '',
+                content: message,
+            });
+        }
+        if (code == 1) {
+            layer.msg(JSON.stringify(message), {icon: code});
+        }
+    }
+    const clearUserInfo = function () {
+        localStorage.setItem('token', '');
+        window.location.href = '/';
     }
 </script>
 </body>

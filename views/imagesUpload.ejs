@@ -53,9 +53,9 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {code, user_type, manager_name} = res;
+                const {code, user_type, manager_name, message} = res;
                 if (code != 0) {
-                    window.location.href = '/';
+                    condeMessage(code, message)
                 } else {
                     if (user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
@@ -77,8 +77,7 @@
                 title: '',
                 content: '确认推出登录吗？',
                 yes: function (index) {
-                    localStorage.setItem('token', '');
-                    window.location.href = '/';
+                    clearUserInfo();
                     layer.close(index);
                 },
             });
@@ -154,6 +153,44 @@
             }
         });
     });
+
+    const condeMessage = function (code, message) {
+        if (code == 5) {
+            layer.open({
+                title: '',
+                content: '用户登录已过期，请重新登录。',
+                yes: function (index) {
+                    clearUserInfo();
+                },
+            });
+        }
+        if (code == 3) {
+            layer.open({
+                title: '',
+                content: message,
+            });
+        }
+        if (code == 1) {
+            layer.msg(JSON.stringify(message), {icon: code});
+        } else {
+            layer.open({
+                title: 'CODE码是' + code,
+                content: message,
+                yes: function (index) {
+                    layer.close(index)
+                    clearUserInfo();
+                },
+                cancel: function (index) {
+                    layer.close(index)
+                    clearUserInfo();
+                }
+            });
+        }
+    }
+    const clearUserInfo = function () {
+        localStorage.setItem('token', '');
+        window.location.href = '/';
+    }
 </script>
 </body>
 </html>
