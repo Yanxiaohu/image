@@ -54,10 +54,10 @@
         <label class="layui-form-label">类型</label>
         <div class="layui-input-inline">
             <select name="user_type" lay-verify="required">
-                <option value="">请选择用户类型</option>
-                <option value="1">超级管理员</option>
-                <option value="3">增删用户</option>
-                <option value="2">查看用户</option>
+                <option value=>请选择用户类型</option>
+                <option value=1>超级管理员</option>
+                <option value=3>增删用户</option>
+                <option value=2>查看用户</option>
             </select>
         </div>
     </div>
@@ -131,10 +131,8 @@
             layer.open({
                 title: '',
                 content: '确认退出登录吗？',
-                yes: function (index) {
-                    localStorage.setItem('token', '');
-                    window.location.href = '/';
-                    layer.close(index);
+                yes: function () {
+                    clearUserInfo();
                 },
             });
         }

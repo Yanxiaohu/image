@@ -64,9 +64,9 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {code, user_type, manager_name,message} = res;
+                const {code, user_type, manager_name, message} = res;
                 if (code != 0) {
-                    condeMessage(code,message)
+                    condeMessage(code, message)
                 } else {
                     if (user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
@@ -109,8 +109,10 @@
                 //上传完毕回调
                 const {code, message} = res;
                 layer.closeAll('loading'); //关闭loading
-                if (code != 0) {
-                    condeMessage(code,'图纸' + '<span style="color: darkred">' + message + '</span>' + '已存在，请更改名字或删除源文件后上传');
+                if (code == 0) {
+                    window.location.href = '';
+                } else {
+                    condeMessage(code, '图纸' + '<span style="color: darkred">' + message + '</span>' + '已存在，请更改名字或删除源文件后上传');
                 }
             }
             , error: function (err) {
@@ -127,7 +129,7 @@
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name,token: localStorage.getItem('token')}
+            , where: {image_name, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID'}
                 , {field: 'image_name', title: '图纸名称'}
@@ -168,7 +170,7 @@
                             if (res.code == 0) {
                                 obj.del();
                             } else {
-                                condeMessage(res.code,res.message)
+                                condeMessage(res.code, res.message)
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -189,9 +191,10 @@
                 title: '',
                 content: message,
                 yes: function (index) {
+                    layer.close(index)
                     clearUserInfo();
                 },
-                cancel: function(index){
+                cancel: function (index) {
                     layer.close(index)
                     clearUserInfo();
                 }

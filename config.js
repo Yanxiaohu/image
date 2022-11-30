@@ -257,7 +257,7 @@ const uploads = function (req, res) {
             const work = function (decoded) {
                 const image_name = files.file.originalFilename;
                 let oldPath = files.file.newFilename;
-                if (decoded.user_type != 1 || decoded.user_type != 3) {
+                if (decoded.user_type != 1 && decoded.user_type != 3) {
                     res.send({
                         code: 3,
                         message: '您已经没有权限浏览该页面'
@@ -344,7 +344,7 @@ const getImages = function (req, res) {
 const delImage = function (req, res) {
     const {del_id, image_name, token} = req.body;
     const work = function (decoded) {
-        if (decoded.user_type != 1 || decoded.user_type != 3) {
+        if (decoded.user_type != 1 && decoded.user_type != 3) {
             res.send({
                 code: 3,
                 message: '您已经没有权限浏览该页面'
