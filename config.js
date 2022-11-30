@@ -76,9 +76,14 @@ const verifyToken = function (token, ip, res, work) {
                 message: '用户登录已过期，请重新登录'
             });
         } else {
-            conn.query('select is_work from user_info_list where ip_info =? AND id =?', [ip, decoded.id], (err, results) => {
+            conn.query('select is_work,user_type from user_info_list where ip_info =? AND id =?', [ip, decoded.id], (err, results) => {
                 if (results != undefined && results.length >= 1) {
-                    if (results[0].is_work === 1) {
+                    if (results[0].user_type != decoded.user_type) {
+                        res.send({
+                            code: 5,
+                            message: '您的用户权限，已变更，请登录后重试。',
+                        })
+                    } else if (results[0].is_work === 1) {
                         work(decoded);
                     } else {
                         res.send({
@@ -98,46 +103,60 @@ const verifyToken = function (token, ip, res, work) {
 }
 const getUsers = function (req, res) {
     const {page, limit, token} = req.query;
-    const work = function () {
-        conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time,password,is_work from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
-            if (err) return console.log(err.message)
-            conn.query('select count(*) count from user_info_list', (err, count) => {
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time,password,is_work from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
                 if (err) return console.log(err.message)
-                let result = {};
-                result = {
-                    code: 0,
-                    count: count[0].count,
-                    data: results,
-                    message: '数据获取成功',
-                }
-                res.send(result);
+                conn.query('select count(*) count from user_info_list', (err, count) => {
+                    if (err) return console.log(err.message)
+                    let result = {};
+                    result = {
+                        code: 0,
+                        count: count[0].count,
+                        data: results,
+                        message: '数据获取成功',
+                    }
+                    res.send(result);
+                })
             })
-        })
+        }
     }
     verifyToken(token, req.ip, res, work);
 }
 const addUser = function (req, res) {
     const {username, password, manager_name, user_type, workshop, is_work, token} = req.body;
     const work = function (decoded) {
-        conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
-            if (results.length == 0) {
-                conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,workshop,is_work) VALUES (?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, workshop, is_work], (err, results) => {
-                    console.log('id1=', decoded.id, 'manager_name1=', decoded.manager_name);
-                    if (err) return console.log(err.message)
-                    console.log('id=', decoded.id, 'manager_name1=', decoded.manager_name);
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
+                if (results.length == 0) {
+                    conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,workshop,is_work) VALUES (?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, workshop, is_work], (err, results) => {
+                        console.log('id1=', decoded.id, 'manager_name1=', decoded.manager_name);
+                        if (err) return console.log(err.message)
+                        console.log('id=', decoded.id, 'manager_name1=', decoded.manager_name);
+                        res.send({
+                            code: 0,
+                            message: '用户新增成功',
+                        });
+                        conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
+                    })
+                } else {
                     res.send({
-                        code: 0,
-                        message: '用户新增成功',
+                        code: 1,
+                        message: '用户已存在',
                     });
-                    conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
-                })
-            } else {
-                res.send({
-                    code: 1,
-                    message: '用户已存在',
-                });
-            }
-        });
+                }
+            });
+        }
     }
     verifyToken(token, req.ip, res, work);
 }
@@ -163,6 +182,11 @@ const editUser = function (req, res) {
                 }
             });
 
+        } else if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
         } else {
             conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
                 if (results.length == 0) {
@@ -181,7 +205,6 @@ const editUser = function (req, res) {
                     });
                 }
             });
-
         }
     }
     verifyToken(token, req.ip, res, work);
@@ -189,10 +212,22 @@ const editUser = function (req, res) {
 const delUser = function (req, res) {
     const {manager_name, user_type, token, del_id} = req.body;
     const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+            return false;
+        }
         if (decoded.id * 1 == del_id * 1) {
             res.send({
                 code: 1,
-                message: '用户不能删除自己，请增加超级管理员后删除自己。',
+                message: '用户不能删除自己，请用另一超级管理员删除。',
+            });
+        } else if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
             });
         } else {
             conn.query('delete from user_info_list where id = ?', [del_id], (err, results) => {
@@ -222,6 +257,13 @@ const uploads = function (req, res) {
             const work = function (decoded) {
                 const image_name = files.file.originalFilename;
                 let oldPath = files.file.newFilename;
+                if (decoded.user_type != 1 || decoded.user_type != 3) {
+                    res.send({
+                        code: 3,
+                        message: '您已经没有权限浏览该页面'
+                    });
+                    return false;
+                }
                 conn.query('select count(*) count from image_info_list where image_name = ?', [image_name], (err, count) => {
                     if (err) return console.log(err.message)
                     if (count[0].count == 0) {
@@ -302,6 +344,13 @@ const getImages = function (req, res) {
 const delImage = function (req, res) {
     const {del_id, image_name, token} = req.body;
     const work = function (decoded) {
+        if (decoded.user_type != 1 || decoded.user_type != 3) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+            return false;
+        }
         conn.query('delete from image_info_list where id = ?', [del_id], (err, results) => {
             if (err) return console.log(err.message)
             fs.unlink('./uploads/' + image_name, function (error) {
@@ -322,7 +371,14 @@ const delImage = function (req, res) {
 }
 const getLogs = function (req, res) {
     const {page, limit, manager_id, token} = req.query;
-    const work = function () {
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+            return false;
+        }
         if (manager_id == undefined || manager_id == '') {
             conn.query('select id,manager_name,action_name,change_name,change_from,manage_time from actions_list  order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
                 if (err) return console.log(err.message)

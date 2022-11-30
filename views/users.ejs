@@ -113,10 +113,10 @@
             type: 'get',
             data: {token: localStorage.getItem('token')},
             success: function (res) {
-                const {code, user_type, manager_name} = res;
+                const {code, user_type, manager_name, message} = res;
                 layer.close(loadStart);
                 if (code != 0) {
-                    window.location.href = '/';
+                    condeMessage(code, message)
                 } else {
                     if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
@@ -219,11 +219,11 @@
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);
-                            const {code,message} =res;
+                            const {code, message} = res;
                             if (res.code == 0) {
                                 obj.del();
-                            }else {
-                                condeMessage(code,message);
+                            } else {
+                                condeMessage(code, message);
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -260,12 +260,12 @@
                 data: {...data.field, token: localStorage.getItem('token')},
                 success: function (res) {
                     layer.close(loadStart);
-                    const {code,message} = res;
-                   if (code == 0){
-                       window.location.href = '';
-                   } else {
-                       condeMessage(code,message);
-                   }
+                    const {code, message} = res;
+                    if (code == 0) {
+                        window.location.href = '';
+                    } else {
+                        condeMessage(code, message);
+                    }
                 },
                 error: function (mas, textStatus, errorThrown) {
                     layer.msg('网络错误，请联系管理员');
@@ -279,7 +279,7 @@
         if (code == 5) {
             layer.open({
                 title: '',
-                content: '用户登录已过期，请重新登录。',
+                content: message,
                 yes: function (index) {
                     clearUserInfo();
                 },
@@ -295,13 +295,13 @@
             layer.msg(JSON.stringify(message), {icon: code});
         } else {
             layer.open({
-                title: 'CODE码是'+code,
+                title: 'CODE码是' + code,
                 content: message,
                 yes: function (index) {
                     layer.close(index)
                     clearUserInfo();
                 },
-                cancel: function(index){
+                cancel: function (index) {
                     layer.close(index)
                     clearUserInfo();
                 }
