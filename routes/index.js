@@ -28,4 +28,7 @@ const imagesUpload = router.get('/imagesUpload', function (req, res, next) {
 const factories = router.get('/factories', function (req, res, next) {
     res.render('factories', {title: 'Express'});
 });
-module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload, factories};
+const workshop = router.get('/workshop', function (req, res, next) {
+    res.render('workshop', {title: 'Express'});
+});
+module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload, factories,workshop};
