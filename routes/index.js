@@ -25,5 +25,7 @@ const actionsLogs = router.get('/actionsLogs', function (req, res, next) {
 const imagesUpload = router.get('/imagesUpload', function (req, res, next) {
     res.render('imagesUpload', {title: 'Express'});
 });
-
-module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload};
+const factories = router.get('/factories', function (req, res, next) {
+    res.render('factories', {title: 'Express'});
+});
+module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload, factories};

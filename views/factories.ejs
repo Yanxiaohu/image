@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>用户管理</title>
+    <title>工厂管理</title>
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
     <ul class="layui-nav">
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item"><a href="/imagesManager">图纸管理</a></li>
-        <li class="layui-nav-item layui-this"><a href="/users">用户</a></li>
-        <li class="layui-nav-item"><a href="/factories">工厂管理</a></li>
+        <li class="layui-nav-item"><a href="/users">用户</a></li>
+        <li class="layui-nav-item layui-this"><a href="/factories">工厂管理</a></li>
         <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
@@ -23,7 +23,7 @@
     </ul>
     <script type="text/html" id="toolbarDemo">
         <div class="layui-btn-container">
-            <button class="layui-btn layui-btn-sm" lay-event="add">添加用户</button>
+            <button class="layui-btn layui-btn-sm" lay-event="add">添加工厂</button>
         </div>
     </script>
     <table id="demo" lay-filter="test"></table>
@@ -37,68 +37,12 @@
 <form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""
       id="infoMadelID">
     <div class="layui-form-item">
-        <label class="layui-form-label">账号</label>
-        <div class="layui-input-inline">
-            <input type="text" name="username" required lay-verify="required" placeholder="请输入账号" autocomplete="off"
+        <div class="layui-input-inline" style="width: 100%;margin-left: 10px">
+            <input type="text" name="from_factory" required lay-verify="required" placeholder="请输入工厂名" autocomplete="off"
                    class="layui-input">
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">密码</label>
-        <div class="layui-input-inline">
-            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off"
-                   defaultValue="123456"
-                   class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">类型</label>
-        <div class="layui-input-inline">
-            <select name="user_type" lay-verify="required">
-                <option value=>请选择用户类型</option>
-                <option value=1>超级管理员</option>
-                <option value=3>增删用户</option>
-                <option value=2>查看用户</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">部门</label>
-        <div class="layui-input-inline">
-            <select name="workshop" lay-verify="required">
-                <option value="">请选择车间或部门</option>
-                <option value="IT科">IT科</option>
-                <option value="生产部">生产部</option>
-                <option value="型材">型材</option>
-                <option value="冲压">冲压</option>
-                <option value="总六一">总六一</option>
-                <option value="总六二">总六二</option>
-                <option value="总三一">总三一</option>
-                <option value="总三二">总三二</option>
-                <option value="总五">总五</option>
-                <option value="总四">总四</option>
-                <option value="涂装">涂装</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">姓名</label>
-        <div class="layui-input-inline">
-            <input type="text" name="manager_name" required lay-verify="required" placeholder="请输入用户名"
-                   autocomplete="off"
-                   class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">状态</label>
-        <div class="layui-input-inline">
-            <select name="is_work" lay-verify="required">
-                <option value="1">在用</option>
-                <option value="0">停用</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item" style="margin-top: 100px">
         <div class="layui-input-block">
             <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
             <button type="reset" class="layui-btn layui-btn-primary">重置</button>
@@ -143,47 +87,24 @@
         //第一个实例
         table.render({
             elem: '#demo'
-            , url: '/getUsers' //数据接口
+            , url: '/getFactories' //数据接口
             , page: true //开启分页
             , toolbar: '#toolbarDemo'
             , where: {token: localStorage.getItem('token')}
             , defaultToolbar: []
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'username', title: '登录用户名', width: 120}
-                , {field: 'user_type', title: '用户类型', width: 100}
-                , {field: 'workshop', title: '车间/科室', width: 100}
-                , {field: 'manager_name', title: '用户姓名'}
-                , {field: 'is_work', title: '是否在用', width: 86}
-                , {field: 'times', title: '登录次数', width: 86}
-                , {field: 'last_login_time', title: '近次登录'}
+                , {field: 'from_factory', title: '工厂名', width: 180}
+                , {field: 'manager_name', title: '操作员', width: 100}
+                , {field: 'manage_time', title: '添加时间'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
                 const $ = layui.$;
-                $("[data-field='user_type']").children().each(function () {
-                    if ($(this).text() == '1') {
-                        $(this).text("超级管理员")
-                    } else if ($(this).text() == '2') {
-                        $(this).text("普通用户")
-                    }
-                    if ($(this).text() == '3') {
-                        $(this).text("生产用户")
-                    }
-                })
-                $("[data-field='last_login_time']").children().each(function () {
+                $("[data-field='manage_time']").children().each(function () {
                     const timeNumber = $(this).text() * 1;
                     const time = new Date(timeNumber).toLocaleString();
                     if (timeNumber > 100) $(this).text(time)
-
-                })
-                $("[data-field='is_work']").children().each(function () {
-                    if ($(this).text() == '1') {
-                        $(this).text("在用")
-                    } else if ($(this).text() == '0') {
-                        $(this).text("停用")
-                    }
-
                 })
             }
         });
@@ -194,7 +115,7 @@
                 case 'add':
                     editID = ''
                     layer.open({
-                        title: '添加用户',
+                        title: '添加工厂',
                         type: 1,
                         content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                     });
@@ -205,14 +126,14 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             let data = obj.data;
-            const {manager_name, id} = data;
+            const {from_factory, id} = data;
             data.del_id = id;
             if (obj.event === 'del') {
-                const message = '真的删除用户' + '<label style="color: darkred">' + manager_name + '</label>' + '吗？';
+                const message = '真的删除用户' + '<label style="color: darkred">' + from_factory + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
                     const delLoading = layer.load(1);
                     layui.$.ajax({
-                        url: '/delUser', //提交接口
+                        url: '/delFactory', //提交接口
                         type: 'post',
                         data: {...data, token: localStorage.getItem('token')},
                         success: function (res) {
@@ -236,7 +157,7 @@
                 editID = obj.data.id;
                 layui.form.val('infoMadel', obj.data);
                 layer.open({
-                    title: '编辑用户',
+                    title: '编辑工厂',
                     type: 1,
                     content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                 });
@@ -248,9 +169,9 @@
             const loadStart = layer.load();
             let url = '';
             if (editID == '') {
-                url = '/addUser';
+                url = '/addFactory';
             } else {
-                url = '/editUser'
+                url = '/editFactory';
                 data.field.editID = editID;
             }
             layui.$.ajax({

@@ -142,9 +142,7 @@ const addUser = function (req, res) {
             conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
                 if (results.length == 0) {
                     conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,workshop,is_work) VALUES (?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, workshop, is_work], (err, results) => {
-                        console.log('id1=', decoded.id, 'manager_name1=', decoded.manager_name);
                         if (err) return console.log(err.message)
-                        console.log('id=', decoded.id, 'manager_name1=', decoded.manager_name);
                         res.send({
                             code: 0,
                             message: '用户新增成功',
@@ -356,7 +354,7 @@ const delImage = function (req, res) {
         }
         conn.query('delete from image_info_list where id = ?', [del_id], (err, results) => {
             if (err) return console.log(err.message)
-            fs.unlink('./uploads/' + image_name, function (error) {
+            fs.unlink('./uploads/' + trimZ(image_name), function (error) {
                 if (error) {
                     console.log(error);
                     return false;
@@ -420,6 +418,117 @@ const getLogs = function (req, res) {
 const addLogs = function (manager_name, manager_id, action_name, change_name, change_from) {
     conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [manager_name, manager_id, action_name, change_name, change_from, new Date().getTime()]);
 }
+/** 工厂操作 **/
+const getFactories = function (req, res) {
+    const {page, limit, token} = req.query;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select id,manager_name,from_factory,manage_time from factory_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+                if (err) return console.log(err.message)
+                conn.query('select count(*) count from factory_info_list', (err, count) => {
+                    if (err) return console.log(err.message)
+                    let result = {};
+                    result = {
+                        code: 0,
+                        count: count[0].count,
+                        data: results,
+                        message: '数据获取成功',
+                    }
+                    res.send(result);
+                })
+            })
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+const addFactory = function (req, res) {
+    const {from_factory, token} = req.body;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select * from factory_info_list where from_factory = ?', [from_factory], (err, results) => {
+                if (results.length == 0) {
+                    conn.query('INSERT INTO factory_info_list (manager_id,manager_name,from_factory,manage_time) VALUES (?,?,?,?)', [decoded.id, decoded.manager_name, from_factory, new Date().getTime()], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '工厂新增成功',
+                        });
+                        addLogs(decoded.manager_name, decoded.id, '增加', from_factory, '工厂');
+                    })
+                } else {
+                    res.send({
+                        code: 1,
+                        message: '工厂名已存在，请更换',
+                    });
+                }
+            });
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+const editFactory = function (req, res) {
+    const {editID, from_factory, token} = req.body;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select * from factory_info_list where from_factory = ? and id != ?', [from_factory, editID], (err, results) => {
+                if (results.length == 0) {
+                    conn.query('update factory_info_list set from_factory=? where id=?', [from_factory, editID], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '工厂成功编辑',
+                        });
+                    })
+                    addLogs(decoded.manager_name, decoded.id, '编辑', from_factory, '工厂');
+                } else {
+                    res.send({
+                        code: 1,
+                        message: '工厂名已存在，请更改后重试',
+                    });
+                }
+            });
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+const delFactory = function (req, res) {
+    const {token, from_factory, del_id} = req.body;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('delete from factory_info_list where id = ?', [del_id * 1], (err, results) => {
+                console.log(results);
+                if (err) return console.log(err.message)
+                res.send({
+                    code: 0,
+                    message: '工厂已删除',
+                });
+                addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '工厂');
+            })
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
 module.exports = {
     login,
     getUsers,
@@ -431,4 +540,8 @@ module.exports = {
     getLogs,
     uploads,
     isLogin,
+    getFactories,
+    addFactory,
+    editFactory,
+    delFactory
 };
