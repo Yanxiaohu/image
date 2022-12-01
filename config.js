@@ -12,6 +12,7 @@ const fs = require('fs');
 const formidable = require('formidable');
 const {trimZ} = require("./tool");
 const secret = 'YanchenImageManager';
+/** 登录验证 **/
 const login = function (body, ip, res) {
     const {username, password} = body;
     conn.query('select manager_name,id,user_type,username,times,is_work from user_info_list where username =? AND password =?', [username, password], (err, results) => {
@@ -101,6 +102,7 @@ const verifyToken = function (token, ip, res, work) {
         }
     })
 }
+/** 用户操作 **/
 const getUsers = function (req, res) {
     const {page, limit, token} = req.query;
     const work = function (decoded) {
@@ -147,7 +149,7 @@ const addUser = function (req, res) {
                             code: 0,
                             message: '用户新增成功',
                         });
-                        conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
+                        addLogs(decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户');
                     })
                 } else {
                     res.send({
@@ -178,7 +180,7 @@ const editUser = function (req, res) {
                             message: '密码修改成功！',
                         });
                     })
-                    conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '编辑', manager_name == null ? '修改自己登陆密码' : manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 2 ? '生产用户' : '用户', new Date().getTime()]);
+                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name == null ? '修改自己登陆密码' : manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 2 ? '生产用户' : '用户')
                 }
             });
 
@@ -197,7 +199,7 @@ const editUser = function (req, res) {
                             message: '用户已成功编辑',
                         });
                     })
-                    conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '编辑', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
+                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户');
                 } else {
                     res.send({
                         code: 1,
@@ -236,12 +238,13 @@ const delUser = function (req, res) {
                     code: 0,
                     message: '用户已删除',
                 });
-                conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '删除', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户', new Date().getTime()]);
+                addLogs(decoded.manager_name, decoded.id, '删除', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户');
             })
         }
     }
     verifyToken(token, req.ip, res, work);
 }
+/** 图纸操作 **/
 const uploads = function (req, res) {
     //创建formidable表单解析对象
     const form = new formidable.IncomingForm();
@@ -283,7 +286,7 @@ const uploads = function (req, res) {
                                         , "message": "上传成功"
                                     }
                                 );
-                                conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '增加', image_name, '图纸', new Date().getTime()]);
+                                addLogs(decoded.manager_name, decoded.id, '增加', image_name, '图纸');
                             })
                         });
                     } else {
@@ -364,11 +367,12 @@ const delImage = function (req, res) {
                 code: 0,
                 message: '图纸已删除',
             });
-            conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [decoded.manager_name, decoded.id, '删除', image_name, '图纸', new Date().getTime()]);
+            addLogs(decoded.manager_name, decoded.id, '删除', image_name, '图纸',);
         })
     }
     verifyToken(token, req.ip, res, work);
 }
+/** 日志操作 **/
 const getLogs = function (req, res) {
     const {page, limit, manager_id, token} = req.query;
     const work = function (decoded) {
@@ -412,6 +416,9 @@ const getLogs = function (req, res) {
         }
     }
     verifyToken(token, req.ip, res, work);
+}
+const addLogs = function (manager_name, manager_id, action_name, change_name, change_from) {
+    conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [manager_name, manager_id, action_name, change_name, change_from, new Date().getTime()]);
 }
 module.exports = {
     login,
