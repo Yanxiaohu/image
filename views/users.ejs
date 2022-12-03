@@ -64,21 +64,16 @@
         </div>
     </div>
     <div class="layui-form-item">
+        <label class="layui-form-label">工厂</label>
+        <div class="layui-input-inline">
+            <select name="from_factory_id" lay-verify="required" id="factory_names_add" lay-filter="factory_names_add">
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
         <label class="layui-form-label">部门</label>
         <div class="layui-input-inline">
-            <select name="workshop" lay-verify="required">
-                <option value="">请选择车间或部门</option>
-                <option value="IT科">IT科</option>
-                <option value="生产部">生产部</option>
-                <option value="型材">型材</option>
-                <option value="冲压">冲压</option>
-                <option value="总六一">总六一</option>
-                <option value="总六二">总六二</option>
-                <option value="总三一">总三一</option>
-                <option value="总三二">总三二</option>
-                <option value="总五">总五</option>
-                <option value="总四">总四</option>
-                <option value="涂装">涂装</option>
+            <select name="workshop_id" lay-verify="required" id="workshop_add" lay-filter="workshop_add">
             </select>
         </div>
     </div>
@@ -122,6 +117,7 @@
                 } else {
                     if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                    getFactories();
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -139,6 +135,36 @@
             });
         }
     });
+    const getFactories = function () {
+        layui.$.ajax({
+            url: '/getFactories', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
+            success: function (res) {
+                let select1 = document.getElementById('factory_names_add');
+                createSelect(select1, res.data);
+            }
+        });
+    }
+
+    const getWorkshops = function (value, work) {
+        layui.$.ajax({
+            url: '/getWorkshops', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
+            where: {from_factory_id: value},
+            success: function (res) {
+                let select1 = document.getElementById('workshop_add');
+                createSelect1(select1, res.data);
+                if (work) work();
+            }
+        });
+    }
+
+    layui.form.on('select(factory_names_add)', function (data) {
+        getWorkshops(data.value);
+    });
+
     layui.use('table', function () {
         const table = layui.table;
         //第一个实例
@@ -235,12 +261,15 @@
                 });
             } else if (obj.event === 'edit') {
                 editID = obj.data.id;
-                layui.form.val('infoMadel', obj.data);
-                layer.open({
-                    title: '编辑用户',
-                    type: 1,
-                    content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
-                });
+                const work = function () {
+                    layui.form.val('infoMadel', obj.data);
+                    layer.open({
+                        title: '编辑用户',
+                        type: 1,
+                        content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                    });
+                }
+                getWorkshops(obj.data.from_factory_id, work);
             }
         });
         const form = layui.form;
@@ -275,6 +304,39 @@
             return false;
         });
     });
+    const createSelect = function (select, data) {
+        const option = document.createElement("option");
+        option.setAttribute("value", '');
+        option.innerText = '选择工厂';
+        select.appendChild(option)
+        for (const i in data) {
+            const option = document.createElement("option");
+            option.setAttribute("value", data[i].id);
+            option.innerText = data[i].from_factory;
+            select.appendChild(option)
+        }
+        layui.use('form', function () {
+            const form = layui.form;
+            form.render("select");
+        });
+    }
+    const createSelect1 = function (select, data) {
+        select.options.length = 0;
+        const option = document.createElement("option");
+        option.setAttribute("value", '');
+        option.innerText = '选择部门';
+        select.appendChild(option)
+        for (const i in data) {
+            const option = document.createElement("option");
+            option.setAttribute("value", data[i].id);
+            option.innerText = data[i].workshop;
+            select.appendChild(option)
+        }
+        layui.use('form', function () {
+            const form = layui.form;
+            form.render("select");
+        });
+    }
     const condeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
@@ -284,14 +346,12 @@
                     clearUserInfo();
                 },
             });
-        }
-        if (code == 3) {
+        } else if (code == 3) {
             layer.open({
                 title: '',
                 content: message,
             });
-        }
-        if (code == 1) {
+        } else if (code == 1) {
             layer.msg(JSON.stringify(message), {icon: code});
         } else {
             layer.open({

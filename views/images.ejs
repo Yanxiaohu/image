@@ -179,23 +179,29 @@
                 title: '',
                 content: message,
                 yes: function (index) {
-                    layer.close(index)
                     clearUserInfo();
                 },
-                cancel: function(index){
-                    layer.close(index)
-                    clearUserInfo();
-                }
             });
-        }
-        if (code == 3) {
+        } else if (code == 3) {
             layer.open({
                 title: '',
                 content: message,
             });
-        }
-        if (code == 1) {
+        } else if (code == 1) {
             layer.msg(JSON.stringify(message), {icon: code});
+        } else {
+            layer.open({
+                title: 'CODE码是' + code,
+                content: message,
+                yes: function (index) {
+                    layer.close(index)
+                    clearUserInfo();
+                },
+                cancel: function (index) {
+                    layer.close(index)
+                    clearUserInfo();
+                }
+            });
         }
     }
     const clearUserInfo = function () {

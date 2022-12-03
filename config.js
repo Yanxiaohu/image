@@ -112,7 +112,7 @@ const getUsers = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('select id,username,manager_name,user_type,workshop,times,last_login_time,password,is_work from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+            conn.query('select id,username,manager_name,user_type,times,last_login_time,password,is_work,workshop_id,from_factory_id from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
                 if (err) return console.log(err.message)
                 conn.query('select count(*) count from user_info_list', (err, count) => {
                     if (err) return console.log(err.message)
@@ -131,7 +131,7 @@ const getUsers = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const addUser = function (req, res) {
-    const {username, password, manager_name, user_type, workshop, is_work, token} = req.body;
+    const {username, password, manager_name, user_type, workshop_id, from_factory_id, is_work, token} = req.body;
     const work = function (decoded) {
         if (decoded.user_type != 1) {
             res.send({
@@ -141,7 +141,7 @@ const addUser = function (req, res) {
         } else {
             conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,workshop,is_work) VALUES (?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, workshop, is_work], (err, results) => {
+                    conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,is_work,workshop_id,from_factory_id) VALUES (?,?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, workshop, is_work], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -161,7 +161,18 @@ const addUser = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const editUser = function (req, res) {
-    const {username, password, manager_name, user_type, workshop, editID, token, new_password, is_work} = req.body;
+    const {
+        username,
+        password,
+        manager_name,
+        user_type,
+        workshop_id,
+        from_factory_id,
+        editID,
+        token,
+        new_password,
+        is_work
+    } = req.body;
     const work = function (decoded) {
         if (username == undefined) {
             conn.query('select * from user_info_list where id =? AND password =?', [decoded.id, password], (err, results) => {
@@ -190,7 +201,7 @@ const editUser = function (req, res) {
         } else {
             conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop = ?,is_work=? where id=?', [username, password, manager_name, user_type, workshop, is_work, editID], (err, results) => {
+                    conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop_id=?,from_factory_id=?,is_work=? where id=?', [username, password, manager_name, user_type, workshop_id, from_factory_id, is_work, editID], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
