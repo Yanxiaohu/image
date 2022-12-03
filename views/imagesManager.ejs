@@ -131,10 +131,11 @@
             , page: true //开启分页
             , where: {image_name, token: localStorage.getItem('token')}
             , cols: [[ //表头
-                {field: 'id', title: 'ID'}
-                , {field: 'image_name', title: '图纸名称'}
+                {field: 'id', title: 'ID', width: 80}
+                , {field: 'image_name', title: '图片名称'}
+                , {field: 'from_factory', title: '所属工厂'}
                 , {field: 'up_time', title: '上传时间'}
-                , {field: 'manager_name', title: '操作员'}
+                , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {

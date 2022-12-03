@@ -151,8 +151,7 @@
         layui.$.ajax({
             url: '/getWorkshops', //提交接口
             type: 'get',
-            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
-            where: {from_factory_id: value},
+            data: {token: localStorage.getItem('token'), page: 1, limit: 100, from_factory_id: value},
             success: function (res) {
                 let select1 = document.getElementById('workshop_add');
                 createSelect1(select1, res.data);
@@ -179,8 +178,9 @@
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'username', title: '登录用户名', width: 120}
                 , {field: 'user_type', title: '用户类型', width: 100}
+                , {field: 'from_factory', title: '工厂', width: 100}
                 , {field: 'workshop', title: '车间/科室', width: 100}
-                , {field: 'manager_name', title: '用户姓名'}
+                , {field: 'manager_name', title: '用户姓名', width: 90}
                 , {field: 'is_work', title: '是否在用', width: 86}
                 , {field: 'times', title: '登录次数', width: 86}
                 , {field: 'last_login_time', title: '近次登录'}

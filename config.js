@@ -15,7 +15,7 @@ const secret = 'YanchenImageManager';
 /** 登录验证 **/
 const login = function (body, ip, res) {
     const {username, password} = body;
-    conn.query('select manager_name,id,user_type,username,times,is_work from user_info_list where username =? AND password =?', [username, password], (err, results) => {
+    conn.query('select manager_name,id,user_type,username,times,is_work,from_factory_id from user_info_list where username =? AND password =?', [username, password], (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0) {
@@ -112,7 +112,7 @@ const getUsers = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('select id,username,manager_name,user_type,times,last_login_time,password,is_work,workshop_id,from_factory_id from user_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+            conn.query('select u.id,u.username,u.manager_name,u.user_type,u.times,u.last_login_time,u.password,u.is_work,u.workshop_id,u.from_factory_id,f.from_factory,w.workshop from user_info_list u,workshop_info_list w,factory_info_list f where u.from_factory_id = f.id and u.workshop_id = w.id limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
                 if (err) return console.log(err.message)
                 conn.query('select count(*) count from user_info_list', (err, count) => {
                     if (err) return console.log(err.message)
@@ -141,7 +141,7 @@ const addUser = function (req, res) {
         } else {
             conn.query('select * from user_info_list where username = ?', [username], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,is_work,workshop_id,from_factory_id) VALUES (?,?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, workshop, is_work], (err, results) => {
+                    conn.query('INSERT INTO user_info_list (manager_id,username, password, manager_name, user_type,is_work,workshop_id,from_factory_id) VALUES (?,?,?,?,?,?,?,?)', [decoded.id, username, password, manager_name, user_type, is_work, workshop_id, from_factory_id], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -287,7 +287,7 @@ const uploads = function (req, res) {
                             }
                         })
                         conn.query('select * from image_info_list where image_name = ?', [image_name], (err, results) => {
-                            conn.query('INSERT INTO image_info_list (manager_id,image_name, manager_name, up_time,url) VALUES (?,?, ?, ?,?)', [decoded.id, image_name, '颜虎', new Date().getTime(), name], (err, results) => {
+                            conn.query('INSERT INTO image_info_list (manager_id,image_name, manager_name, up_time,url,from_factory_id) VALUES (?,?, ?, ?,?,?)', [decoded.id, image_name, decoded.manager_name, new Date().getTime(), name, decoded.from_factory_id], (err, results) => {
                                 if (err) return console.log(err.message)
                                 res.send(
                                     {
@@ -318,11 +318,19 @@ const uploads = function (req, res) {
 }
 const getImages = function (req, res) {
     const {page = 1, limit = 10, image_name, token} = req.query;
-    const work = function () {
+    const cachePage = (page - 1) * limit;
+    const cacheLimit = limit * 1;
+    const work = function (decoded) {
         if (image_name === undefined) {
-            conn.query('select id,image_name,url,up_time,manager_name from image_info_list order by id desc limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+            const mysqlStr = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory
+                              from image_info_list i,
+                                   factory_info_list f
+                              where i.from_factory_id = f.id
+                                and i.from_factory_id = ${decoded.from_factory_id}
+                              order by id desc limit ${cachePage}, ${cacheLimit}`
+            conn.query(mysqlStr, (err, results) => {
                 if (err) return console.log(err.message)
-                conn.query('select count(*) count from image_info_list', (err, count) => {
+                conn.query('select count(*) count from image_info_list where from_factory_id = ?', [decoded.from_factory_id], (err, count) => {
                     if (err) return console.log(err.message)
                     let result = {};
                     result = {
@@ -549,7 +557,6 @@ const delFactory = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
-
 const addWorkshop = function (req, res) {
     const {from_factory_id, workshop, token, from_factory} = req.body;
     const work = function (decoded) {
@@ -580,7 +587,6 @@ const addWorkshop = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
-
 const getWorkshops = function (req, res) {
     const {page, limit, token, from_factory_id} = req.query;
     const work = function (decoded) {
@@ -606,6 +612,7 @@ const getWorkshops = function (req, res) {
                     })
                 })
             } else {
+                console.log('from_factory_id=', from_factory_id);
                 conn.query('select id,workshop,from_factory,from_factory_id,manage_time,manager_name from workshop_info_list where from_factory_id =? limit ?,?', [from_factory_id, (page - 1) * limit, limit * 1], (err, results) => {
                     if (err) return console.log(err.message)
                     conn.query('select count(*) count from workshop_info_list where from_factory_id = ?', [from_factory_id], (err, count) => {
@@ -625,7 +632,6 @@ const getWorkshops = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
-
 const editWorkshop = function (req, res) {
     const {editID, workshop, token} = req.body;
     const work = function (decoded) {
@@ -656,7 +662,6 @@ const editWorkshop = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
-
 const delWorkshop = function (req, res) {
     const {token, from_factory, del_id} = req.body;
     const work = function (decoded) {
@@ -666,20 +671,28 @@ const delWorkshop = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('delete from workshop_info_list where id = ?', [del_id * 1], (err, results) => {
-                console.log(results);
+            conn.query('select count(*) count from user_info_list where workshop_id = ?', [del_id], (err, count) => {
                 if (err) return console.log(err.message)
-                res.send({
-                    code: 0,
-                    message: '部门已删除',
-                });
-                addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '部门');
-            })
+                if (count[0].count >= 1) {
+                    res.send({
+                        code: 3,
+                        message: '部门有下属人员，不能删除',
+                    });
+                } else {
+                    conn.query('delete from workshop_info_list where id = ?', [del_id * 1], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '部门已删除',
+                        });
+                        addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '部门');
+                    })
+                }
+            });
         }
     }
     verifyToken(token, req.ip, res, work);
 }
-
 module.exports = {
     login,
     getUsers,
