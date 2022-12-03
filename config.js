@@ -515,14 +515,154 @@ const delFactory = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('delete from factory_info_list where id = ?', [del_id * 1], (err, results) => {
+            conn.query('select count(*) count from workshop_info_list where from_factory_id = ?', [del_id], (err, count) => {
+                if (err) return console.log(err.message)
+                if (count[0].count == 0) {
+                    conn.query('delete from factory_info_list where id = ?', [del_id * 1], (err, results) => {
+                        console.log(results);
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '工厂已删除',
+                        });
+                        addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '工厂');
+                    })
+                } else {
+                    res.send({
+                        code: 3,
+                        message: '有下属部门尚未删除，请删除下属部门',
+                    });
+                }
+            })
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const addWorkshop = function (req, res) {
+    const {from_factory_id, workshop, token, from_factory} = req.body;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select * from workshop_info_list where workshop = ?', [workshop], (err, results) => {
+                if (results.length == 0) {
+                    conn.query('INSERT INTO workshop_info_list (manager_id,manager_name,workshop,manage_time,from_factory_id,from_factory) VALUES (?,?,?,?,?,?)', [decoded.id, decoded.manager_name, workshop, new Date().getTime(), from_factory_id, from_factory], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '部门新增成功',
+                        });
+                        addLogs(decoded.manager_name, decoded.id, '增加', workshop, '部门');
+                    })
+                } else {
+                    res.send({
+                        code: 1,
+                        message: '部门名已存在，请更换',
+                    });
+                }
+            });
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const getWorkshops = function (req, res) {
+    const {page, limit, token, from_factory_id} = req.query;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            if (from_factory_id == '' || from_factory_id == null) {
+                conn.query('select id,workshop,from_factory,from_factory_id,manage_time,manager_name from workshop_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+                    if (err) return console.log(err.message)
+                    conn.query('select count(*) count from workshop_info_list', (err, count) => {
+                        if (err) return console.log(err.message)
+                        let result = {};
+                        result = {
+                            code: 0,
+                            count: count[0].count,
+                            data: results,
+                            message: '数据获取成功',
+                        }
+                        res.send(result);
+                    })
+                })
+            } else {
+                conn.query('select id,workshop,from_factory,from_factory_id,manage_time,manager_name from workshop_info_list where from_factory_id =? limit ?,?', [from_factory_id, (page - 1) * limit, limit * 1], (err, results) => {
+                    if (err) return console.log(err.message)
+                    conn.query('select count(*) count from workshop_info_list where from_factory_id = ?', [from_factory_id], (err, count) => {
+                        if (err) return console.log(err.message)
+                        let result = {};
+                        result = {
+                            code: 0,
+                            count: count[0].count,
+                            data: results,
+                            message: '数据获取成功',
+                        }
+                        res.send(result);
+                    })
+                })
+            }
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const editWorkshop = function (req, res) {
+    const {editID, workshop, token} = req.body;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('select * from workshop_info_list where workshop = ? and id != ?', [workshop, editID], (err, results) => {
+                if (results.length == 0) {
+                    conn.query('update workshop_info_list set workshop=? where id=?', [workshop, editID], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '部门成功编辑',
+                        });
+                    })
+                    addLogs(decoded.manager_name, decoded.id, '编辑', workshop, '部门');
+                } else {
+                    res.send({
+                        code: 1,
+                        message: '名已存在，请更改后重试',
+                    });
+                }
+            });
+        }
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const delWorkshop = function (req, res) {
+    const {token, from_factory, del_id} = req.body;
+    const work = function (decoded) {
+        if (decoded.user_type != 1) {
+            res.send({
+                code: 3,
+                message: '您已经没有权限浏览该页面'
+            });
+        } else {
+            conn.query('delete from workshop_info_list where id = ?', [del_id * 1], (err, results) => {
                 console.log(results);
                 if (err) return console.log(err.message)
                 res.send({
                     code: 0,
-                    message: '工厂已删除',
+                    message: '部门已删除',
                 });
-                addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '工厂');
+                addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '部门');
             })
         }
     }
@@ -543,5 +683,9 @@ module.exports = {
     getFactories,
     addFactory,
     editFactory,
-    delFactory
+    delFactory,
+    addWorkshop,
+    getWorkshops,
+    editWorkshop,
+    delWorkshop
 };
