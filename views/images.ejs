@@ -11,7 +11,7 @@
     <ul class="layui-nav">
         <li class="layui-nav-item layui-this"><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item " id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a></li>
-        <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户</a></li>
+        <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item " id="actionsLogs" style="display: none"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
@@ -21,7 +21,16 @@
             </dl>
         </li>
     </ul>
-    <form class="layui-form" action="" style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
+    <form class="layui-form" action="" lay-filter="factory_names_add"
+          style="padding: 0;width: 200px;margin-top: 10px;display: inline-block">
+        <div class="layui-form-item" style="margin-bottom: 0">
+            <div class="layui-input-block" style="margin-left: 0">
+                <select name="from_factory_id" id="factory_names_add" lay-filter="factory_names_add">
+                </select>
+            </div>
+        </div>
+    </form>
+    <form class="layui-form" action="" lay-filter="image_name_filter" style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
         <div class="layui-form-item">
             <div class="layui-input-inline">
                 <input type="text" name="image_name" required lay-verify="required" placeholder="请输入名称"
@@ -32,7 +41,6 @@
                 <button type="reset" class="layui-btn layui-btn-primary">重置</button>
             </div>
         </div>
-
     </form>
     <table id="demo" lay-filter="test" style="width: 100%"></table>
 </div>
@@ -49,7 +57,11 @@
             tableRender(data.field.image_name)
             return false;
         });
+        form.on('select(factory_names_add)', function () {
+            tableRender(form.val("image_name_filter").image_name);
+        });
     });
+
     layui.use(function () {
         const layer = layui.layer;
         const loadStart = layer.load();
@@ -59,7 +71,7 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name, code, message} = res;
+                const {user_type, manager_name, from_factory_id, code, message} = res;
                 if (code == 0) {
                     let star = '';
                     if (user_type === 1) {
@@ -74,7 +86,7 @@
                         star = 'layui-icon-rate';
                     }
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
-                    tableRender();
+                    getFactories(from_factory_id);
                 } else {
                     condeMessage(code, message);
                 }
@@ -133,19 +145,45 @@
             return false;
         });
     });
+    const getFactories = function (from_factory_id) {
+        layui.$.ajax({
+            url: '/getFactories', //提交接口
+            type: 'get',
+            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
+            success: function (res) {
+                factories = res.data;
+                let select1 = document.getElementById('factory_names_add');
+                createSelect(select1);
+                layui.form.val('factory_names_add', {from_factory_id});
+                tableRender();
+            }
+        });
+    }
+    const createSelect = function (select) {
+        for (const i in factories) {
+            const option = document.createElement("option");
+            option.setAttribute("value", factories[i].id);
+            option.innerText = factories[i].from_factory;
+            select.appendChild(option)
+        }
+        layui.use('form', function () {
+            const form = layui.form;
+            form.render("select");
+        });
+    }
     const tableRender = function (image_name) {
         const table = layui.table;
         const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name, token: localStorage.getItem('token')}
+            , where: {image_name, ...layui.form.val("factory_names_add"), token: localStorage.getItem('token')}
             , cols: [[ //表头
-                {field: 'id', title: 'ID',width: 80}
+                {field: 'id', title: 'ID', width: 80}
                 , {field: 'image_name', title: '图片名称'}
                 , {field: 'from_factory', title: '所属工厂'}
                 , {field: 'up_time', title: '上传时间'}
-                , {field: 'manager_name', title: '操作员',width: 80}
+                , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {

@@ -49,15 +49,16 @@ const login = function (body, ip, res) {
 const isLogin = function (body, ip, res) {
     const {token} = body;
     const work = function (decoded) {
-        conn.query('select manager_name,user_type from user_info_list where  id =?', [decoded.id], (err, results) => {
+        conn.query('select manager_name,user_type,from_factory_id from user_info_list where  id =?', [decoded.id], (err, results) => {
             if (err) return console.log(err.message)
             if (results.length == 1) {
                 const cache = results[0];
-                const {manager_name, user_type} = cache;
+                const {manager_name, user_type, from_factory_id} = cache;
                 res.send({
                     code: 0,
                     manager_name,
                     user_type,
+                    from_factory_id
                 })
             } else {
                 res.send({
@@ -317,7 +318,7 @@ const uploads = function (req, res) {
     )
 }
 const getImages = function (req, res) {
-    const {page = 1, limit = 10, image_name, token} = req.query;
+    const {page = 1, limit = 10, image_name, token, from_factory_id} = req.query;
     const cachePage = (page - 1) * limit;
     const cacheLimit = limit * 1;
     const work = function (decoded) {
@@ -328,7 +329,15 @@ const getImages = function (req, res) {
         let imagesCountSql = `select count(*) count
                               from image_info_list`;
         let limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
-        if (image_name === undefined) {
+        if (from_factory_id != undefined) {
+            if (image_name === undefined) {
+                ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id} ${limit}`;
+                imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id}`;
+            } else {
+                ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id}  and image_name like "%${image_name}%" ${limit}`;
+                imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id} and image_name like "%${image_name}%"`;
+            }
+        } else if (image_name === undefined) {
             if (decoded.user_type != 1) {
                 ImageListSql = `${ImageListSql}
                                   and i.from_factory_id = ${decoded.from_factory_id}
