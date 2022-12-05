@@ -321,43 +321,56 @@ const getImages = function (req, res) {
     const cachePage = (page - 1) * limit;
     const cacheLimit = limit * 1;
     const work = function (decoded) {
+        let ImageListSql = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory
+                            from image_info_list i,
+                                 factory_info_list f
+                            where i.from_factory_id = f.id`;
+        let imagesCountSql = `select count(*) count
+                              from image_info_list`;
+        let limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
         if (image_name === undefined) {
-            const mysqlStr = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory
-                              from image_info_list i,
-                                   factory_info_list f
-                              where i.from_factory_id = f.id
-                                and i.from_factory_id = ${decoded.from_factory_id}
-                              order by id desc limit ${cachePage}, ${cacheLimit}`
-            conn.query(mysqlStr, (err, results) => {
-                if (err) return console.log(err.message)
-                conn.query('select count(*) count from image_info_list where from_factory_id = ?', [decoded.from_factory_id], (err, count) => {
-                    if (err) return console.log(err.message)
-                    let result = {};
-                    result = {
-                        code: 0,
-                        count: count[0].count,
-                        data: results,
-                        message: '数据获取成功',
-                    }
-                    res.send(result);
-                })
-            })
+            if (decoded.user_type != 1) {
+                ImageListSql = `${ImageListSql}
+                                  and i.from_factory_id = ${decoded.from_factory_id}
+                                ${limit}`
+                imagesCountSql = `${imagesCountSql}
+                                  where from_factory_id =${decoded.from_factory_id}`
+            } else {
+                ImageListSql = `${ImageListSql}
+                                ${limit}`
+                imagesCountSql = `${imagesCountSql}`
+            }
         } else {
-            conn.query('select id,image_name,url,up_time,manager_name from image_info_list where image_name like ? order by id desc limit ?,? ', ['%' + image_name + '%', (page - 1) * 10, limit * 1], (err, results) => {
-                if (err) return console.log(err.message)
-                conn.query('select count(*) count from image_info_list where image_name like ?', ['%' + image_name + '%'], (err, count) => {
-                    if (err) return console.log(err.message)
-                    let result = {};
-                    result = {
-                        code: 0,
-                        count: count[0].count,
-                        data: results,
-                        message: '数据获取成功',
-                    }
-                    res.send(result);
-                })
-            })
+            if (decoded.user_type != 1) {
+                ImageListSql = `${ImageListSql}
+                                  and i.from_factory_id = ${decoded.from_factory_id}
+                                  and image_name like "%${image_name}%"
+                                ${limit}`;
+                imagesCountSql = `${imagesCountSql}
+                                  where from_factory_id =${decoded.from_factory_id}
+                                    and image_name like "%${image_name}%"`;
+            } else {
+                ImageListSql = `${ImageListSql}
+                                  and image_name like "%${image_name}%"
+                                    ${limit}`;
+                imagesCountSql = `${imagesCountSql}
+                                  where image_name like "%${image_name}%"`;
+            }
         }
+        conn.query(ImageListSql, (err, results) => {
+            if (err) return console.log(err.message)
+            conn.query(imagesCountSql, (err, count) => {
+                if (err) return console.log(err.message)
+                let result = {};
+                result = {
+                    code: 0,
+                    count: count[0].count,
+                    data: results,
+                    message: '数据获取成功',
+                }
+                res.send(result);
+            })
+        })
     }
     verifyToken(token, req.ip, res, work);
 }
