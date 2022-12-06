@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>操作日志</title>
+    <title>申请管理</title>
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
@@ -12,7 +12,9 @@
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item"><a href="/users">用户管理</a></li>
-        <li class="layui-nav-item layui-this"><a href="/actionsLogs">操作日志</a></li>
+        <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
+        <li class="layui-nav-item  layui-this" id="applyList"><a href="/apply">申请<span
+                        class="layui-badge layui-hide" id='applyListBadge'></span></a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
             <dl class="layui-nav-child" style="z-index: 999">
@@ -30,8 +32,43 @@
     </form>
     <table id="demo" lay-filter="test"></table>
 </div>
+<form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""
+      id="infoMadelID">
+    <div class="layui-form-item">
+        <div class="layui-input-inline" style="width: 100%;margin-left: 10px">
+            <select name="duration" lay-verify="required">
+                <option value=2>2小时</option>
+                <option value=4>8小时</option>
+                <option value=12>12小时</option>
+                <option value=48>2天</option>
+                <option value=168>1周</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <div class="layui-input-inline" style="width: 100%;margin-left: 10px">
+            <input type="text" name="id" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
+<script type="text/html" id="barDemo">
+    {{# if(d.is_gree == 1){ }}
+    已同意
+    {{# }else if(d.duration === '0' ) { }}
+    已拒绝
+    {{# }else{ }}
+    <a class="layui-btn layui-btn-xs" lay-event="agree">同意 <i class="layui-icon"></i></a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="refuse">拒绝</a>
+    {{# } }}
+</script>
 <script>
     layui.use(function () {
         const layer = layui.layer;
@@ -42,10 +79,15 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name, code, message} = res;
+                const {user_type, manager_name, code, message, un_read_count} = res;
                 if (code == 0) {
                     if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                    if (un_read_count > 0) {
+                        const applyListBadge = document.getElementById('applyListBadge');
+                        applyListBadge.classList.remove('layui-hide');
+                        applyListBadge.innerText = un_read_count;
+                    }
                     tableRender();
                 } else {
                     condeMessage(code, message);
@@ -98,23 +140,22 @@
         const table = layui.table;
         table.render({
             elem: '#demo',
-            url: '/getLogs',  //数据接口
+            url: '/getApply',  //数据接口
             page: true, //开启分页
             defaultToolbar: [],
             where: {manager_id, token: localStorage.getItem('token')},
             cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80},
-                {field: 'manager_name', title: '操作员', width: 120},
-                {field: 'action_name', title: '行为', width: 100},
-                {field: 'change_from', title: '分类', width: 100},
-                {field: 'change_name', title: '名字'},
-                {field: 'manage_time', title: '时间'},
+                {field: 'apply_name', title: '申请人', width: 120},
+                {field: 'manager_name', title: '操作人员'},
+                {field: 'apply_time', title: '申请时间'},
+                {field: 'manage', fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#barDemo'}
             ]],
             done: function (res, page, count) {
-                const {code, message} = res;
+                const {code, message, data} = res;
                 if (code == 0) {
                     const $ = layui.$;
-                    $("[data-field='manage_time']").children().each(function () {
+                    $("[data-field='apply_time']").children().each(function () {
                         const timeNumber = $(this).text() * 1;
                         const time = new Date(timeNumber).toLocaleString();
                         if (timeNumber > 100) $(this).text(time)
@@ -124,7 +165,67 @@
                 }
             }
         });
+        table.on('tool(test)', function (obj) {
+            switch (obj.event) {
+                case 'agree':
+                    layer.open({
+                        title: '选择有效时长',
+                        type: 1,
+                        content: layui.$('#infoMadelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                    });
+                    layui.form.val('infoMadel', {id: obj.data.id, duration: 2});
+                    break;
+                case 'refuse':
+                    layer.confirm('确认拒绝' + obj.data.is_gree, {
+                        btn: ['拒绝', '取消',] //可以无限个按钮
+                    }, function (index) {
+                        layui.$.ajax({
+                            url: '/editApply', //提交接口
+                            type: 'post',
+                            data: {is_gree: 0, duration: 0, id: obj.data.id, token: localStorage.getItem('token')},
+                            success: function (res) {
+                                layer.close(index);
+                                const {code, message} = res;
+                                if (code == 0) {
+                                    window.location.href = '';
+                                } else {
+                                    layer.close(index);
+                                    condeMessage(code, message);
+                                }
+                            },
+                            error: function (mas, textStatus, errorThrown) {
+                                layer.msg('网络错误，请联系管理员');
+                            }
+                        });
+                    });
+                    break;
+            }
+        });
     }
+    const form = layui.form;
+    //监听提交
+    form.on('submit(formDemo)', function (data) {
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/editApply', //提交接口
+            type: 'post',
+            data: {is_gree: 1, ...data.field, token: localStorage.getItem('token')},
+            success: function (res) {
+                layer.close(loadStart);
+                const {code, message} = res;
+                if (code == 0) {
+                    window.location.href = '';
+                } else {
+                    condeMessage(code, message);
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.msg('网络错误，请联系管理员');
+                layer.close(loadStart);
+            }
+        });
+        return false;
+    });
     const condeMessage = function (code, message) {
         if (code == 5) {
             layer.open({

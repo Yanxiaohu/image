@@ -31,4 +31,7 @@ const factories = router.get('/factories', function (req, res, next) {
 const workshop = router.get('/workshop', function (req, res, next) {
     res.render('workshop', {title: 'Express'});
 });
-module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload, factories,workshop};
+const pageApply = router.get('/apply', function (req, res, next) {
+    res.render('apply', {title: 'Express'});
+});
+module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop, pageApply};
