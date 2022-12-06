@@ -321,6 +321,7 @@ const getImages = function (req, res) {
     const {page = 1, limit = 10, image_name, token, from_factory_id} = req.query;
     const cachePage = (page - 1) * limit;
     const cacheLimit = limit * 1;
+    const cache_from_factory_id = from_factory_id * 1;
     const work = function (decoded) {
         let ImageListSql = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory
                             from image_info_list i,
@@ -328,11 +329,11 @@ const getImages = function (req, res) {
                             where i.from_factory_id = f.id`;
         let imagesCountSql = `select count(*) count
                               from image_info_list`;
-        let limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
+        const limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
         if (from_factory_id != undefined) {
             if (image_name === undefined) {
-                ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id} ${limit}`;
-                imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id}`;
+                ImageListSql = `${ImageListSql}  and i.from_factory_id = ${cache_from_factory_id} ${limit}`;
+                imagesCountSql = `${imagesCountSql}  where from_factory_id = ${cache_from_factory_id}`;
             } else {
                 ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id}  and image_name like "%${image_name}%" ${limit}`;
                 imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id} and image_name like "%${image_name}%"`;
@@ -463,7 +464,7 @@ const addLogs = function (manager_name, manager_id, action_name, change_name, ch
 const getFactories = function (req, res) {
     const {page, limit, token} = req.query;
     const work = function (decoded) {
-        if (decoded.user_type != 1) {
+        if (decoded.user_type != 1 && limit != 100) {
             res.send({
                 code: 3,
                 message: '您已经没有权限浏览该页面'
@@ -715,6 +716,50 @@ const delWorkshop = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
+/** 文件权限 **/
+const fileRead = function (req, res, pathStr) {
+    res.sendFile(pathStr + "/" + req.url);
+}
+const imageRead = function (req, res) {
+    const {token, factory_id, id} = req.query;
+    const work = function (decoded) {
+        const {user_type} = decoded;
+        conn.query('select url ,from_factory_id from image_info_list  where id = ?', [id], (err, result) => {
+            if (err) return console.log(err.message)
+            const {url, from_factory_id} = result[0];
+            if (factory_id == from_factory_id || user_type == 1) {
+                res.send(
+                    {
+                        code: 0,
+                        url,
+                    }
+                );
+            } else {
+                res.send(
+                    {
+                        code: 7,
+                        message: '您没有权限，查看该图纸是否申请查看？',
+                    });
+            }
+        });
+    }
+    verifyToken(token, req.ip, res, work);
+}
+const apply = function (req, res) {
+    const {token} = req.body;
+    const work = function (decoded) {
+        const {id} = decoded;
+        conn.query('INSERT INTO apply_list (is_read,apply_id,apply_time,is_gree) VALUES (?,?,?,?)', [0, id, new Date().getTime(), 0], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                message: '已成功发起申请',
+            });
+            addLogs(decoded.manager_name, decoded.id, '发起', '申请', '图纸');
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
 module.exports = {
     login,
     getUsers,
@@ -733,5 +778,8 @@ module.exports = {
     addWorkshop,
     getWorkshops,
     editWorkshop,
-    delWorkshop
+    delWorkshop,
+    fileRead,
+    imageRead,
+    apply
 };

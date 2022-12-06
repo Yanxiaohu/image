@@ -30,7 +30,8 @@
             </div>
         </div>
     </form>
-    <form class="layui-form" action="" lay-filter="image_name_filter" style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
+    <form class="layui-form" action="" lay-filter="image_name_filter"
+          style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
         <div class="layui-form-item">
             <div class="layui-input-inline">
                 <input type="text" name="image_name" required lay-verify="required" placeholder="请输入名称"
@@ -61,7 +62,6 @@
             tableRender(form.val("image_name_filter").image_name);
         });
     });
-
     layui.use(function () {
         const layer = layui.layer;
         const loadStart = layer.load();
@@ -201,19 +201,40 @@
 
             }
         };
-        if (image_name) {
-            renderDir.image_name = image_name;
-        }
-        //第一个实例
         table.render(renderDir);
-        //监听行工具事件
-        table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
-            const {url} = obj.data
-            window.open(url, '_blank');
+        table.on('tool(test)', function (obj) {
+            const {id} = obj.data
+            const token = localStorage.getItem('token');
+            layui.$.ajax({
+                url: '/imageRead', //提交接口
+                type: 'get',
+                data: {token, id},
+                success: function (res) {
+                    const {code, message, url} = res;
+                    if (code == 0) {
+                        window.open(url, '_blank');
+                    } else {
+                        const work = function () {
+                            console.log('麻烦的工作，又要开始了。')
+                            layui.$.ajax({
+                                url: '/apply', //提交接口
+                                type: 'post',
+                                data: {token: localStorage.getItem('token')},
+                                success: function (res) {
+                                    codeMessage(res.code, res.message);
+                                }
+                            });
+                        }
+                        codeMessage(code, message, work);
+                    }
+                }
+            });
         });
     }
-    const condeMessage = function (code, message) {
-        if (code == 5) {
+    const codeMessage = function (code, message, work) {
+        if (code == 0) {
+            layer.msg(JSON.stringify(message), {icon: 1});
+        } else if (code == 5) {
             layer.open({
                 title: '',
                 content: message,
@@ -227,7 +248,14 @@
                 content: message,
             });
         } else if (code == 1) {
-            layer.msg(JSON.stringify(message), {icon: code});
+            layer.msg(JSON.stringify(message), {icon: 2});
+        } else if (code == 7) {
+            layer.confirm(message, {
+                btn: ['前往申请', '不申请'] //可以无限个按钮
+            }, function (index) {
+                work();
+                layer.close(index);
+            });
         } else {
             layer.open({
                 title: 'CODE码是' + code,

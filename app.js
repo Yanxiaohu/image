@@ -21,7 +21,7 @@ const {
     getFactories,
     addFactory,
     editFactory,
-    delFactory, addWorkshop, getWorkshops, editWorkshop, delWorkshop
+    delFactory, addWorkshop, getWorkshops, editWorkshop, delWorkshop, fileRead, imageRead, apply
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
@@ -87,10 +87,14 @@ app.post('/delWorkshop', function (req, res) {
 // 图片浏览
 app.use(express.static('uploads'));
 app.get('/uploads/*', function (req, res) {
-    res.sendFile(__dirname + "/" + req.url);
-    // console.log("Request for " + req.url + " received.");
+    fileRead(req, res, __dirname);
 })
-
+app.get('/imageRead', function (req, res) {
+    imageRead(req, res);
+})
+app.post('/apply', function (req, res) {
+    apply(req, res);
+})
 // ------------------- 前端路由页面 ----------------------------//
 const {index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop} = require('./routes/index');
 // view engine setup
