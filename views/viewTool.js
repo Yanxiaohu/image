@@ -1,5 +1,5 @@
 layui.define(function (exports) { //提示：模块也可以依赖其它模块，如：layui.define('mod1', callback);
-    const condeMessage = function (code, message) {
+    const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
                 title: '',
@@ -34,5 +34,5 @@ layui.define(function (exports) { //提示：模块也可以依赖其它模块�
         localStorage.setItem('token', '');
         window.location.href = '/';
     }
-    exports('viewTool', condeMessage, clearUserInfo);
+    exports('viewTool', codeMessage, clearUserInfo);
 });

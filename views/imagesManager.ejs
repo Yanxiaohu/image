@@ -66,7 +66,7 @@
                 layer.close(loadStart);
                 const {code, user_type, manager_name, message} = res;
                 if (code != 0) {
-                    condeMessage(code, message)
+                    codeMessage(code, message)
                 } else {
                     if (user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
@@ -112,7 +112,7 @@
                 if (code == 0) {
                     window.location.href = '';
                 } else {
-                    condeMessage(code, '图纸' + '<span style="color: darkred">' + message + '</span>' + '已存在，请更改名字或删除源文件后上传');
+                    codeMessage(code, '图纸' + '<span style="color: darkred">' + message + '</span>' + '已存在，请更改名字或删除源文件后上传');
                 }
             }
             , error: function (err) {
@@ -171,7 +171,7 @@
                             if (res.code == 0) {
                                 obj.del();
                             } else {
-                                condeMessage(res.code, res.message)
+                                codeMessage(res.code, res.message)
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -186,7 +186,7 @@
             }
         });
     }
-    const condeMessage = function (code, message) {
+    const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
                 title: '',

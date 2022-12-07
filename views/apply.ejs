@@ -60,11 +60,11 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script type="text/html" id="barDemo">
-    {{# if(d.is_gree == 1){ }}
+    {{# if(d.is_agree == 2){ }}
     已同意
-    {{# }else if(d.duration === '0' ) { }}
+    {{# }else if(d.is_agree == 0 ) { }}
     已拒绝
-    {{# }else{ }}
+    {{# }else if(d.is_agree == 1 ) { }}
     <a class="layui-btn layui-btn-xs" lay-event="agree">同意 <i class="layui-icon"></i></a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="refuse">拒绝</a>
     {{# } }}
@@ -90,7 +90,7 @@
                     }
                     tableRender();
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -161,7 +161,7 @@
                         if (timeNumber > 100) $(this).text(time)
                     })
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
             }
         });
@@ -176,13 +176,13 @@
                     layui.form.val('infoMadel', {id: obj.data.id, duration: 2});
                     break;
                 case 'refuse':
-                    layer.confirm('确认拒绝' + obj.data.is_gree, {
+                    layer.confirm('确认拒绝' + obj.data.is_agree, {
                         btn: ['拒绝', '取消',] //可以无限个按钮
                     }, function (index) {
                         layui.$.ajax({
                             url: '/editApply', //提交接口
                             type: 'post',
-                            data: {is_gree: 0, duration: 0, id: obj.data.id, token: localStorage.getItem('token')},
+                            data: {is_agree: 0, id: obj.data.id, token: localStorage.getItem('token')},
                             success: function (res) {
                                 layer.close(index);
                                 const {code, message} = res;
@@ -190,7 +190,7 @@
                                     window.location.href = '';
                                 } else {
                                     layer.close(index);
-                                    condeMessage(code, message);
+                                    codeMessage(code, message);
                                 }
                             },
                             error: function (mas, textStatus, errorThrown) {
@@ -209,14 +209,14 @@
         layui.$.ajax({
             url: '/editApply', //提交接口
             type: 'post',
-            data: {is_gree: 1, ...data.field, token: localStorage.getItem('token')},
+            data: {is_agree: 2, ...data.field, token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
                 const {code, message} = res;
                 if (code == 0) {
                     window.location.href = '';
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -226,7 +226,7 @@
         });
         return false;
     });
-    const condeMessage = function (code, message) {
+    const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
                 title: '',

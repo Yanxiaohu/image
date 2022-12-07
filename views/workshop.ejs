@@ -79,7 +79,7 @@
                 const {code, user_type, manager_name, message} = res;
                 layer.close(loadStart);
                 if (code != 0) {
-                    condeMessage(code, message)
+                    codeMessage(code, message)
                 } else {
                     if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
@@ -186,7 +186,7 @@
                             if (res.code == 0) {
                                 obj.del();
                             } else {
-                                condeMessage(code, message);
+                                codeMessage(code, message);
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -236,7 +236,7 @@
                     if (code == 0) {
                         window.location.href = '';
                     } else {
-                        condeMessage(code, message);
+                        codeMessage(code, message);
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {
@@ -263,7 +263,7 @@
             form.render("select");
         });
     }
-    const condeMessage = function (code, message) {
+    const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
                 title: '',

@@ -55,7 +55,7 @@ const isLogin = function (body, ip, res) {
                 const cache = results[0];
                 const {manager_name, user_type, from_factory_id} = cache;
                 if (user_type == 1) {
-                    conn.query('select count(*) count from apply_list where  is_gree = 0 and duration!=0 and duration != null or duration =?', [''], (err, count) => {
+                    conn.query('select count(*) count from apply_list where  is_agree = 1 ', (err, count) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -748,12 +748,12 @@ const imageRead = function (req, res) {
                     }
                 );
             } else {
-                conn.query('select gree_time ,duration,is_gree from apply_list  where apply_id = ?', [decoded.id], (err, result1) => {
+                conn.query('select gree_time ,duration,is_agree from apply_list  where apply_id = ?', [decoded.id], (err, result1) => {
                     if (err) return console.log(err.message)
                     if (result1.length > 0) {
-                        const {gree_time, duration, is_gree} = result1[0];
+                        const {gree_time, duration, is_agree} = result1[0];
                         const endTime = gree_time * 1 + duration * 1 * 3600000 - new Date().getTime();
-                        if (is_gree == 1 && endTime > 0) {
+                        if (is_agree == 2 && endTime > 0) {
                             res.send(
                                 {
                                     code: 0,
@@ -783,25 +783,25 @@ const imageRead = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const apply = function (req, res) {
-    const {is_gree, duration, token} = req.body;
+    const {token} = req.body;
     const work = function (decoded) {
         const {id} = decoded;
         conn.query('select count(*) count from apply_list where apply_id = ?', [id], (err, results) => {
             if (err) return console.log(err.message)
             if (results[0].count >= 1) {
-                conn.query('update apply_list set is_gree=?,apply_time=? ,duration=?,manager_id=? where apply_id=?', [is_gree, new Date().getTime(), duration, id * 1, null], (err, results) => {
+                conn.query('update apply_list set is_agree=?,apply_time=?  where apply_id=?', [1, new Date().getTime(), id * 1], (err, results) => {
                     if (err) return console.log(err.message)
                     res.send({
                         code: 0,
-                        message: '已成功发起申请'
+                        message: '已成功发起申请1'
                     });
                 })
             } else {
-                conn.query('INSERT INTO apply_list (is_read,apply_id,apply_time,is_gree) VALUES (?,?,?,?)', [0, id, new Date().getTime(), 0], (err, result) => {
+                conn.query('INSERT INTO apply_list (apply_id,apply_time,is_agree) VALUES (?,?,?)', [id, new Date().getTime(), 1], (err, result) => {
                     if (err) return console.log(err.message)
                     res.send({
                         code: 0,
-                        message: '已成功发起申请',
+                        message: '已成功发起申请2',
                     });
                     addLogs(decoded.manager_name, decoded.id, '发起', '申请', '图纸');
                 })
@@ -814,7 +814,7 @@ const apply = function (req, res) {
 const getApply = function (req, res) {
     const {page, limit, token} = req.query;
     const work = function () {
-        conn.query('select a.id,u.manager_name apply_name,a.apply_time,a.is_gree,a.duration from apply_list a,user_info_list u where a.apply_id = u.id  order by a.is_gree limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+        conn.query('select a.id,u.manager_name apply_name,a.apply_time,a.is_agree,a.duration from apply_list a,user_info_list u where a.apply_id = u.id  order by a.is_agree limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
             conn.query('select count(*) count from apply_list', (err, count) => {
                 if (err) return console.log(err.message)
@@ -833,9 +833,9 @@ const getApply = function (req, res) {
 }
 
 const editApply = function (req, res) {
-    const {id, is_gree, duration, token} = req.body;
+    const {id, is_agree, duration, token} = req.body;
     const work = function (decoded) {
-        conn.query('update apply_list set is_gree=?,manager_id=?,duration=?,gree_time=? where id=?', [is_gree, decoded.id, duration, new Date().getTime(), id * 1,], (err, results) => {
+        conn.query('update apply_list set is_agree=?,manager_id=?,duration=?,gree_time=? where id=?', [is_agree, decoded.id, duration, new Date().getTime(), id * 1,], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,

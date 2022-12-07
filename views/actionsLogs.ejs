@@ -48,7 +48,7 @@
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
                     tableRender();
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -120,12 +120,12 @@
                         if (timeNumber > 100) $(this).text(time)
                     })
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
             }
         });
     }
-    const condeMessage = function (code, message) {
+    const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
                 title: '',

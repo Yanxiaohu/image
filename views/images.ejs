@@ -96,7 +96,7 @@
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
                     getFactories(from_factory_id);
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -142,7 +142,7 @@
                             clearUserInfo();
                         });
                     } else {
-                        condeMessage(code, message)
+                        codeMessage(code, message)
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {
@@ -204,7 +204,7 @@
                         if (timeNumber > 100) $(this).text(time)
                     })
                 } else {
-                    condeMessage(code, message);
+                    codeMessage(code, message);
                 }
 
             }
@@ -223,11 +223,10 @@
                         window.open(url, '_blank');
                     } else {
                         const work = function () {
-                            console.log('麻烦的工作，又要开始了。')
                             layui.$.ajax({
                                 url: '/apply', //提交接口
                                 type: 'post',
-                                data: {token: localStorage.getItem('token'), is_gree: 0, is_read: 0, duration: null},
+                                data: {token: localStorage.getItem('token')},
                                 success: function (res) {
                                     codeMessage(res.code, res.message);
                                 }

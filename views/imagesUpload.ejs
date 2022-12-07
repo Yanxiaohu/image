@@ -55,7 +55,7 @@
                 layer.close(loadStart);
                 const {code, user_type, manager_name, message} = res;
                 if (code != 0) {
-                    condeMessage(code, message)
+                    codeMessage(code, message)
                 } else {
                     if (user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
@@ -153,7 +153,7 @@
             }
         });
     });
-    const condeMessage = function (code, message) {
+    const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
                 title: '',
