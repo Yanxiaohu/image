@@ -8,20 +8,15 @@ const bodyParser = require('body-parser');
 
 // ------------------- 请求数据库操作 ----------------------------//
 const {
-    login,
-    isLogin,
-    getUsers,
-    addUser,
-    delUser,
-    getImages,
-    delImage,
-    editUser,
+    login, isLogin,
+    getUsers, addUser, editUser, delUser,
+    getImages, uploads, delImage,
     getLogs,
-    uploads,
-    getFactories,
-    addFactory,
-    editFactory,
-    delFactory, addWorkshop, getWorkshops, editWorkshop, delWorkshop, fileRead, imageRead, apply,getApply,editApply
+    getFactories, addFactory, editFactory, delFactory,
+    addWorkshop, getWorkshops, editWorkshop, delWorkshop,
+    fileRead,
+    imageRead,
+    apply, getApply, editApply
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数

@@ -22,14 +22,6 @@
             </dl>
         </li>
     </ul>
-    <form class="layui-form" action="" style="padding: 0;width: 200px;margin-top: 10px">
-        <div class="layui-form-item" style="margin-bottom: 0">
-            <div class="layui-input-block" style="margin-left: 0">
-                <select name="id" id="manager_names" lay-filter="manager_names">
-                </select>
-            </div>
-        </div>
-    </form>
     <table id="demo" lay-filter="test"></table>
 </div>
 <form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""
@@ -108,32 +100,6 @@
                 },
             });
         }
-        layui.$.ajax({
-            url: '/getUsers', //提交接口
-            type: 'get',
-            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
-            success: function (res) {
-                const {data = []} = res;
-                let select = document.getElementById('manager_names');
-                const option = document.createElement("option");
-                option.setAttribute("value", '');
-                option.innerText = '全部';
-                select.appendChild(option)
-                for (const i in data) {
-                    const option = document.createElement("option");
-                    option.setAttribute("value", data[i].id);
-                    option.innerText = data[i].manager_name;
-                    select.appendChild(option)
-                }
-                layui.use('form', function () {
-                    const form = layui.form;
-                    form.render("select");
-                });
-            }
-        });
-        layui.form.on('select(manager_names)', function (data) {
-            tableRender(data.value)
-        });
     });
 
     const tableRender = function (manager_id) {
@@ -149,6 +115,7 @@
                 {field: 'apply_name', title: '申请人', width: 120},
                 {field: 'manager_name', title: '操作人员'},
                 {field: 'apply_time', title: '申请时间'},
+                {field: 'duration', title: '截至有效期'},
                 {field: 'manage', fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#barDemo'}
             ]],
             done: function (res, page, count) {
@@ -156,6 +123,11 @@
                 if (code == 0) {
                     const $ = layui.$;
                     $("[data-field='apply_time']").children().each(function () {
+                        const timeNumber = $(this).text() * 1;
+                        const time = new Date(timeNumber).toLocaleString();
+                        if (timeNumber > 100) $(this).text(time)
+                    })
+                    $("[data-field='duration']").children().each(function () {
                         const timeNumber = $(this).text() * 1;
                         const time = new Date(timeNumber).toLocaleString();
                         if (timeNumber > 100) $(this).text(time)

@@ -602,7 +602,7 @@ const addWorkshop = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('select * from workshop_info_list where workshop = ?', [workshop], (err, results) => {
+            conn.query('select * from workshop_info_list where workshop = ? and from_factory_id =?', [workshop, from_factory_id], (err, results) => {
                 if (results.length == 0) {
                     conn.query('INSERT INTO workshop_info_list (manager_id,manager_name,workshop,manage_time,from_factory_id,from_factory) VALUES (?,?,?,?,?,?)', [decoded.id, decoded.manager_name, workshop, new Date().getTime(), from_factory_id, from_factory], (err, results) => {
                         if (err) return console.log(err.message)
@@ -751,8 +751,8 @@ const imageRead = function (req, res) {
                 conn.query('select gree_time ,duration,is_agree from apply_list  where apply_id = ?', [decoded.id], (err, result1) => {
                     if (err) return console.log(err.message)
                     if (result1.length > 0) {
-                        const {gree_time, duration, is_agree} = result1[0];
-                        const endTime = gree_time * 1 + duration * 1 * 3600000 - new Date().getTime();
+                        const {duration, is_agree} = result1[0];
+                        const endTime = duration * 1 - new Date().getTime();
                         if (is_agree == 2 && endTime > 0) {
                             res.send(
                                 {
@@ -789,7 +789,7 @@ const apply = function (req, res) {
         conn.query('select count(*) count from apply_list where apply_id = ?', [id], (err, results) => {
             if (err) return console.log(err.message)
             if (results[0].count >= 1) {
-                conn.query('update apply_list set is_agree=?,apply_time=?  where apply_id=?', [1, new Date().getTime(), id * 1], (err, results) => {
+                conn.query('update apply_list set is_agree=?,apply_time=?,manager_id=?  where apply_id=?', [1, new Date().getTime(), null, id * 1], (err, results) => {
                     if (err) return console.log(err.message)
                     res.send({
                         code: 0,
@@ -814,7 +814,18 @@ const apply = function (req, res) {
 const getApply = function (req, res) {
     const {page, limit, token} = req.query;
     const work = function () {
-        conn.query('select a.id,u.manager_name apply_name,a.apply_time,a.is_agree,a.duration from apply_list a,user_info_list u where a.apply_id = u.id  order by a.is_agree limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+        conn.query(`select a.id,
+                           u.manager_name apply_name,
+                           a.apply_time,
+                           a.is_agree,
+                           a.duration,
+                           u1.manager_name
+                    from apply_list a
+                             inner join user_info_list u
+                                        on a.apply_id = u.id
+                             left outer join user_info_list u1
+                                             on a.manager_id = u1.id
+                    order by a.is_agree limit ?, ?`, [(page - 1) * limit, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
             conn.query('select count(*) count from apply_list', (err, count) => {
                 if (err) return console.log(err.message)
@@ -831,11 +842,14 @@ const getApply = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
-
 const editApply = function (req, res) {
     const {id, is_agree, duration, token} = req.body;
+    let cacheDuration = duration * 1 * 3600000 + new Date().getTime();
+    if (duration == null) {
+        cacheDuration = 0;
+    }
     const work = function (decoded) {
-        conn.query('update apply_list set is_agree=?,manager_id=?,duration=?,gree_time=? where id=?', [is_agree, decoded.id, duration, new Date().getTime(), id * 1,], (err, results) => {
+        conn.query('update apply_list set is_agree=?,manager_id=?,duration=?,gree_time=? where id=?', [is_agree, decoded.id, cacheDuration, new Date().getTime(), id * 1,], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
@@ -845,7 +859,6 @@ const editApply = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
-
 module.exports = {
     login,
     getUsers,
