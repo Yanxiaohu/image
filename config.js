@@ -748,11 +748,35 @@ const imageRead = function (req, res) {
                     }
                 );
             } else {
-                res.send(
-                    {
-                        code: 7,
-                        message: '您没有权限，查看该图纸是否申请查看？',
-                    });
+                conn.query('select gree_time ,duration,is_gree from apply_list  where apply_id = ?', [decoded.id], (err, result1) => {
+                    if (err) return console.log(err.message)
+                    if (result1.length > 0) {
+                        const {gree_time, duration, is_gree} = result1[0];
+                        const endTime = gree_time * 1 + duration * 1 * 3600000 - new Date().getTime();
+                        if (is_gree == 1 && endTime > 0) {
+                            res.send(
+                                {
+                                    code: 0,
+                                    url,
+                                    endTime
+                                }
+                            );
+                        } else {
+                            res.send(
+                                {
+                                    code: 7,
+                                    message: '您没有权限，查看该图纸是否申请查看？',
+                                });
+                        }
+                    } else {
+                        res.send(
+                            {
+                                code: 7,
+                                message: '您没有权限，查看该图纸是否申请查看？',
+                            });
+                    }
+                })
+
             }
         });
     }
@@ -765,7 +789,7 @@ const apply = function (req, res) {
         conn.query('select count(*) count from apply_list where apply_id = ?', [id], (err, results) => {
             if (err) return console.log(err.message)
             if (results[0].count >= 1) {
-                conn.query('update apply_list set is_gree=?,apply_time=? ,duration=? where apply_id=?', [is_gree, new Date().getTime(), duration, id * 1,], (err, results) => {
+                conn.query('update apply_list set is_gree=?,apply_time=? ,duration=?,manager_id=? where apply_id=?', [is_gree, new Date().getTime(), duration, id * 1, null], (err, results) => {
                     if (err) return console.log(err.message)
                     res.send({
                         code: 0,
@@ -790,7 +814,7 @@ const apply = function (req, res) {
 const getApply = function (req, res) {
     const {page, limit, token} = req.query;
     const work = function () {
-        conn.query('select a.id,u.manager_name apply_name,a.apply_time,a.is_gree,a.duration from apply_list a,user_info_list u where a.apply_id = u.id order by a.is_gree limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+        conn.query('select a.id,u.manager_name apply_name,a.apply_time,a.is_gree,a.duration from apply_list a,user_info_list u where a.apply_id = u.id  order by a.is_gree limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
             if (err) return console.log(err.message)
             conn.query('select count(*) count from apply_list', (err, count) => {
                 if (err) return console.log(err.message)
