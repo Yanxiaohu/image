@@ -15,7 +15,10 @@ const secret = 'YanchenImageManager';
 /** 登录验证 **/
 const login = function (body, ip, res) {
     const {username, password} = body;
-    conn.query('select manager_name,id,user_type,username,times,is_work,from_factory_id from user_info_list where username =? AND password =?', [username, password], (err, results) => {
+    conn.query(`select manager_name, id, user_type, username, times, is_work, from_factory_id
+                from user_info_list
+                where username = ${username}
+                  AND password = ${password}`, (err, results) => {
         if (err) return console.log(err.message)
         let result = {};
         if (results.length == 0) {
