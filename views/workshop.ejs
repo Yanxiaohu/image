@@ -67,6 +67,7 @@
     </div>
 </form>
 <script>
+    layui.$.ajaxSetup({cache: false})
     let factories = [];
     layui.use(function () {
         const layer = layui.layer;
@@ -234,7 +235,7 @@
                 success: function (res) {
                     layer.close(loadStart);
                     if (res.code == 0) {
-                        window.location.reload();
+                        window.location.href = '/workshop';
                     } else {
                         codeMessage(res.code, res.message);
                     }

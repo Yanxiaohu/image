@@ -62,6 +62,7 @@
     {{# } }}
 </script>
 <script>
+    layui.$.ajaxSetup({cache: false})
     layui.use(function () {
         const layer = layui.layer;
         const loadStart = layer.load();

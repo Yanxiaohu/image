@@ -34,6 +34,7 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
+    layui.$.ajaxSetup({cache: false})
     layui.use(function () {
         const layer = layui.layer;
         layui.$.ajax({
