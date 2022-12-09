@@ -71,18 +71,17 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name, code, message, un_read_count} = res;
-                if (code == 0) {
-                    if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
-                    if (un_read_count > 0) {
+                if (res.code == 0) {
+                    if (res.user_type == 2 || res.user_type == 3) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + res.manager_name;
+                    if (res.un_read_count > 0) {
                         const applyListBadge = document.getElementById('applyListBadge');
                         applyListBadge.classList.remove('layui-hide');
-                        applyListBadge.innerText = un_read_count;
+                        applyListBadge.innerText = res.un_read_count;
                     }
                     tableRender();
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -109,7 +108,7 @@
             url: '/getApply',  //数据接口
             page: true, //开启分页
             defaultToolbar: [],
-            where: {manager_id, token: localStorage.getItem('token')},
+            where: {manager_id: manager_id, token: localStorage.getItem('token')},
             cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80},
                 {field: 'apply_name', title: '申请人', width: 120},
@@ -119,8 +118,7 @@
                 {field: 'manage', fixed: 'right', title: '操作', width: 150, align: 'center', toolbar: '#barDemo'}
             ]],
             done: function (res, page, count) {
-                const {code, message, data} = res;
-                if (code == 0) {
+                if (res.code == 0) {
                     const $ = layui.$;
                     $("[data-field='apply_time']").children().each(function () {
                         const timeNumber = $(this).text() * 1;
@@ -133,7 +131,7 @@
                         if (timeNumber > 100) $(this).text(time)
                     })
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
             }
         });
@@ -157,12 +155,11 @@
                             data: {is_agree: 0, id: obj.data.id, token: localStorage.getItem('token')},
                             success: function (res) {
                                 layer.close(index);
-                                const {code, message} = res;
-                                if (code == 0) {
+                                if (res.code == 0) {
                                     window.location.href = '';
                                 } else {
                                     layer.close(index);
-                                    codeMessage(code, message);
+                                    codeMessage(res.code, res.message);
                                 }
                             },
                             error: function (mas, textStatus, errorThrown) {
@@ -178,17 +175,17 @@
     //监听提交
     form.on('submit(formDemo)', function (data) {
         const loadStart = layer.load();
+        const field = data.field;
         layui.$.ajax({
             url: '/editApply', //提交接口
             type: 'post',
-            data: {is_agree: 2, ...data.field, token: localStorage.getItem('token')},
+            data: {is_agree: 2, duration: field.duration, id: field.id, token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {code, message} = res;
-                if (code == 0) {
+                if (res.code == 0) {
                     window.location.href = '';
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {

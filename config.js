@@ -209,16 +209,16 @@ const editUser = function (req, res) {
                     addLogs(decoded.manager_name, decoded.id, '编辑', manager_name == null ? '修改自己登陆密码' : manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 2 ? '生产用户' : '用户')
                 }
             });
-
         } else if (decoded.user_type != 1) {
             res.send({
                 code: 3,
                 message: '您已经没有权限浏览该页面'
             });
         } else {
+            console.log(username, editID);
             conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop_id=?,from_factory_id=?,is_work=? where id=?', [username, password, manager_name, user_type, workshop_id, from_factory_id, is_work, editID], (err, results) => {
+                    conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop_id=?,from_factory_id=?,is_work=? where id=?', [username, password, manager_name, user_type, workshop_id, from_factory_id, is_work, editID * 1], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -672,7 +672,7 @@ const getWorkshops = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const editWorkshop = function (req, res) {
-    const {editID, workshop, token} = req.body;
+    const {editID, workshop, token, from_factory_id} = req.body;
     const work = function (decoded) {
         if (decoded.user_type != 1) {
             res.send({
@@ -680,7 +680,7 @@ const editWorkshop = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('select * from workshop_info_list where workshop = ? and id != ?', [workshop, editID], (err, results) => {
+            conn.query('select * from workshop_info_list where workshop = ? and id != ? and from_factory_id = ? ', [workshop, editID, from_factory_id], (err, results) => {
                 if (results.length == 0) {
                     conn.query('update workshop_info_list set workshop=? where id=?', [workshop, editID], (err, results) => {
                         if (err) return console.log(err.message)

@@ -76,13 +76,12 @@
             type: 'get',
             data: {token: localStorage.getItem('token')},
             success: function (res) {
-                const {code, user_type, manager_name, message} = res;
                 layer.close(loadStart);
-                if (code != 0) {
+                if (res.code != 0) {
                     codeMessage(code, message)
                 } else {
-                    if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                    if (res.user_type == 2 || res.user_type == 3) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + res.manager_name;
                     getFactories();
                 }
             },
@@ -130,7 +129,7 @@
             , url: '/getWorkshops' //数据接口
             , page: true //开启分页
             , toolbar: '#toolbarDemo'
-            , where: {token: localStorage.getItem('token'), from_factory_id}
+            , where: {token: localStorage.getItem('token'), from_factory_id: from_factory_id}
             , defaultToolbar: []
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
@@ -169,24 +168,21 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             let data = obj.data;
-            const {from_factory, id} = data;
-            data.del_id = id;
             if (obj.event === 'del') {
-                const message = '真的删除用户' + '<label style="color: darkred">' + from_factory + '</label>' + '吗？';
+                const message = '真的删除用户' + '<label style="color: darkred">' + data.workshop + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
                     const delLoading = layer.load(1);
                     layui.$.ajax({
                         url: '/delWorkshop', //提交接口
                         type: 'post',
-                        data: {...data, token: localStorage.getItem('token')},
+                        data: {del_id: data.id, token: localStorage.getItem('token')},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);
-                            const {code, message} = res;
                             if (res.code == 0) {
                                 obj.del();
                             } else {
-                                codeMessage(code, message);
+                                codeMessage(res.code, res.message);
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -198,7 +194,6 @@
                 });
             } else if (obj.event === 'edit') {
                 editID = obj.data.id;
-                console.log(obj.data);
                 layui.form.val('infoMadel', obj.data);
                 layer.open({
                     title: '编辑',
@@ -216,27 +211,32 @@
                 url = '/addWorkshop';
             } else {
                 url = '/editWorkshop';
-                data.field.editID = editID;
             }
             let factory = '';
-            for (const urlKey in factories) {
-                let {id, from_factory} = factories[urlKey]
+            for (let urlKey in factories) {
+                let id = factories[urlKey].id;
+                let from_factory = factories[urlKey].from_factory_id
                 if (data.field.from_factory_id * 1 == id * 1) {
                     factory = from_factory
                 }
             }
-            console.log(factory);
+            const field = data.field;
+            console.log(field);
             layui.$.ajax({
-                url, //提交接口
+                url: url, //提交接口
                 type: 'post',
-                data: {...data.field, from_factory: factory, token: localStorage.getItem('token')},
+                data: {
+                    editID: editID,
+                    workshop: field.workshop,
+                    from_factory_id: field.from_factory_id,
+                    token: localStorage.getItem('token')
+                },
                 success: function (res) {
                     layer.close(loadStart);
-                    const {code, message} = res;
-                    if (code == 0) {
-                        window.location.href = '';
+                    if (res.code == 0) {
+                        window.location.reload();
                     } else {
-                        codeMessage(code, message);
+                        codeMessage(res.code, res.message);
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {
@@ -252,7 +252,7 @@
         option.setAttribute("value", '');
         option.innerText = '根据工厂区分';
         select.appendChild(option)
-        for (const i in factories) {
+        for (let i in factories) {
             const option = document.createElement("option");
             option.setAttribute("value", factories[i].id);
             option.innerText = factories[i].from_factory;

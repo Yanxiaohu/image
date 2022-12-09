@@ -73,30 +73,29 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name, from_factory_id, code, message, un_read_count} = res;
-                if (code == 0) {
+                if (res.code == 0) {
                     let star = '';
-                    if (user_type === 1) {
+                    if (res.user_type === 1) {
                         document.getElementById('imageManager').style.display = 'inline-block';
                         document.getElementById('userManager').style.display = 'inline-block';
                         document.getElementById('actionsLogs').style.display = 'inline-block';
                         document.getElementById('applyList').style.display = 'inline-block'
-                        if (un_read_count > 0) {
+                        if (res.un_read_count > 0) {
                             const applyListBadge = document.getElementById('applyListBadge');
                             applyListBadge.classList.remove('layui-hide');
-                            applyListBadge.innerText = un_read_count;
+                            applyListBadge.innerText = res.un_read_count;
                         }
                         star = 'layui-icon-rate-solid';
-                    } else if (user_type === 3) {
+                    } else if (res.user_type === 3) {
                         document.getElementById('imageManager').style.display = 'inline-block';
                         star = 'layui-icon-rate-half';
                     } else {
                         star = 'layui-icon-rate';
                     }
-                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + manager_name;
-                    getFactories(from_factory_id);
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + res.manager_name;
+                    getFactories(res.from_factory_id);
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -123,9 +122,7 @@
         }
         //监听提交
         layui.form.on('submit(formFixPassword)', function (data) {
-            const {new_password, re_password} = data.field;
-            console.log(data.field)
-            if (re_password != new_password) {
+            if (data.field.re_password != data.field.new_password) {
                 layer.msg('两次密码输入不一致，请清新输入', {icon: 0});
                 return false;
             }
@@ -133,16 +130,19 @@
             layui.$.ajax({
                 url: '/editUser', //提交接口
                 type: 'post',
-                data: {...data.field, token: localStorage.getItem('token')},
+                data: {
+                    password: data.field.password,
+                    new_password: data.field.new_password,
+                    token: localStorage.getItem('token')
+                },
                 success: function (res) {
                     layer.close(loadStart);
-                    const {code, message} = res;
-                    if (code == 0) {
+                    if (res.code == 0) {
                         layer.msg(JSON.stringify(res.message), {icon: 0}, function () {
                             clearUserInfo();
                         });
                     } else {
-                        codeMessage(code, message)
+                        codeMessage(res.code, res.message)
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {
@@ -162,14 +162,14 @@
                 factories = res.data;
                 let select1 = document.getElementById('factory_names_add');
                 createSelect(select1);
-                layui.form.val('factory_names_add', {from_factory_id});
+                layui.form.val('factory_names_add', {from_factory_id: from_factory_id});
                 tableRender();
             }
         });
     }
     const createSelect = function (select) {
-        for (const i in factories) {
-            const option = document.createElement("option");
+        for (let i in factories) {
+            let option = document.createElement("option");
             option.setAttribute("value", factories[i].id);
             option.innerText = factories[i].from_factory;
             select.appendChild(option)
@@ -181,11 +181,12 @@
     }
     const tableRender = function (image_name) {
         const table = layui.table;
+        const from_factory_id = layui.form.val("factory_names_add").from_factory_id;
         const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name, ...layui.form.val("factory_names_add"), token: localStorage.getItem('token')}
+            , where: {image_name: image_name, from_factory_id: from_factory_id, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'image_name', title: '图片名称'}
@@ -195,8 +196,7 @@
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
-                const {code, message} = res;
-                if (code == 0) {
+                if (res.code == 0) {
                     const $ = layui.$;
                     $("[data-field='up_time']").children().each(function () {
                         const timeNumber = $(this).text() * 1;
@@ -204,23 +204,21 @@
                         if (timeNumber > 100) $(this).text(time)
                     })
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
 
             }
         };
         table.render(renderDir);
         table.on('tool(test)', function (obj) {
-            const {id} = obj.data
             const token = localStorage.getItem('token');
             layui.$.ajax({
                 url: '/imageRead', //提交接口
                 type: 'get',
-                data: {token, id},
+                data: {token: token, id: obj.data.id},
                 success: function (res) {
-                    const {code, message, url} = res;
-                    if (code == 0) {
-                        window.open(url, '_blank');
+                    if (res.code == 0) {
+                        window.open(res.url, '_blank');
                     } else {
                         const work = function () {
                             layui.$.ajax({
@@ -232,7 +230,7 @@
                                 }
                             });
                         }
-                        codeMessage(code, message, work);
+                        codeMessage(res.code, res.message, work);
                     }
                 }
             });

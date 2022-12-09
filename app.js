@@ -20,7 +20,7 @@ const {
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
-app.use(bodyParser.urlencoded({extends: false}))
+app.use(bodyParser.urlencoded({extends: true}))
 
 app.post('/login', function (req, res) {
     login(req.body, req.ip, res);
@@ -106,7 +106,8 @@ const {
     imagesUpload,
     factories,
     workshop,
-    pageApply
+    pageApply,
+    mxDrawX
 } = require('./routes/index');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -116,7 +117,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop, pageApply);
+app.use(index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop, pageApply,mxDrawX);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));

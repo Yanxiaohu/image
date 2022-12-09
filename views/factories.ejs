@@ -60,13 +60,12 @@
             type: 'get',
             data: {token: localStorage.getItem('token')},
             success: function (res) {
-                const {code, user_type, manager_name, message} = res;
                 layer.close(loadStart);
-                if (code != 0) {
+                if (res.code != 0) {
                     codeMessage(code, message)
                 } else {
-                    if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                    if (res.user_type == 2 || res.user_type == 3) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + res.manager_name;
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -128,24 +127,21 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             let data = obj.data;
-            const {from_factory, id} = data;
-            data.del_id = id;
             if (obj.event === 'del') {
-                const message = '真的删除用户' + '<label style="color: darkred">' + from_factory + '</label>' + '吗？';
+                const message = '真的删除用户' + '<label style="color: darkred">' + data.from_factory + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
                     const delLoading = layer.load(1);
                     layui.$.ajax({
                         url: '/delFactory', //提交接口
                         type: 'post',
-                        data: {...data, token: localStorage.getItem('token')},
+                        data: {del_id: data.id, token: localStorage.getItem('token')},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);
-                            const {code, message} = res;
                             if (res.code == 0) {
                                 obj.del();
                             } else {
-                                codeMessage(code, message);
+                                codeMessage(res.code, res.message);
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -170,23 +166,22 @@
         form.on('submit(formDemo)', function (data) {
             const loadStart = layer.load();
             let url = '';
+            const field = data.field;
             if (editID == '') {
                 url = '/addFactory';
             } else {
                 url = '/editFactory';
-                data.field.editID = editID;
             }
             layui.$.ajax({
-                url, //提交接口
+                url: url, //提交接口
                 type: 'post',
-                data: {...data.field, token: localStorage.getItem('token')},
+                data: {editID: editID, from_factory: field.from_factory, token: localStorage.getItem('token')},
                 success: function (res) {
                     layer.close(loadStart);
-                    const {code, message} = res;
-                    if (code == 0) {
-                        window.location.href = '';
+                    if (res.code == 0) {
+                        window.location.reload();
                     } else {
-                        codeMessage(code, message);
+                        codeMessage(res.code, res.message);
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {

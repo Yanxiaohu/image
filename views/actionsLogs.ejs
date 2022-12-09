@@ -42,13 +42,12 @@
             data: {token: localStorage.getItem('token')},
             success: function (res) {
                 layer.close(loadStart);
-                const {user_type, manager_name, code, message} = res;
-                if (code == 0) {
-                    if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                if (res.code == 0) {
+                    if (res.user_type == 2 || res.user_type == 3) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + res.manager_name;
                     tableRender();
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
             },
             error: function (mas, textStatus, errorThrown) {
@@ -71,13 +70,14 @@
             type: 'get',
             data: {token: localStorage.getItem('token'), page: 1, limit: 100},
             success: function (res) {
-                const {data = []} = res;
+                let data = [];
+                data = res.data;
                 let select = document.getElementById('manager_names');
                 const option = document.createElement("option");
                 option.setAttribute("value", '');
                 option.innerText = '全部';
                 select.appendChild(option)
-                for (const i in data) {
+                for (let i in data) {
                     const option = document.createElement("option");
                     option.setAttribute("value", data[i].id);
                     option.innerText = data[i].manager_name;
@@ -101,7 +101,7 @@
             url: '/getLogs',  //数据接口
             page: true, //开启分页
             defaultToolbar: [],
-            where: {manager_id, token: localStorage.getItem('token')},
+            where: {manager_id:manager_id, token: localStorage.getItem('token')},
             cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80},
                 {field: 'manager_name', title: '操作员', width: 120},
@@ -111,8 +111,7 @@
                 {field: 'manage_time', title: '时间'},
             ]],
             done: function (res, page, count) {
-                const {code, message} = res;
-                if (code == 0) {
+                if (res.code == 0) {
                     const $ = layui.$;
                     $("[data-field='manage_time']").children().each(function () {
                         const timeNumber = $(this).text() * 1;
@@ -120,7 +119,7 @@
                         if (timeNumber > 100) $(this).text(time)
                     })
                 } else {
-                    codeMessage(code, message);
+                    codeMessage(res.code, res.message);
                 }
             }
         });

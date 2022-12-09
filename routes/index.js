@@ -34,4 +34,20 @@ const workshop = router.get('/workshop', function (req, res, next) {
 const pageApply = router.get('/apply', function (req, res, next) {
     res.render('apply', {title: 'Express'});
 });
-module.exports = {index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop, pageApply};
+
+const mxDrawX = router.get('/mxDrawX', function (req, res, next) {
+    res.render('mxDrawX', {title: 'Express'});
+});
+
+module.exports = {
+    index,
+    users,
+    images,
+    imagesManager,
+    actionsLogs,
+    imagesUpload,
+    factories,
+    workshop,
+    pageApply,
+    mxDrawX
+};

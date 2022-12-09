@@ -110,13 +110,12 @@
             type: 'get',
             data: {token: localStorage.getItem('token')},
             success: function (res) {
-                const {code, user_type, manager_name, message} = res;
                 layer.close(loadStart);
-                if (code != 0) {
-                    codeMessage(code, message)
+                if (res.code != 0) {
+                    codeMessage(res.code, res.message)
                 } else {
-                    if (user_type == 2 || user_type == 3) window.location.href = '/imagesShow';
-                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + manager_name;
+                    if (res.user_type == 2 || res.user_type == 3) window.location.href = '/imagesShow';
+                    document.getElementById('manager_name').innerHTML = '<i class="layui-icon layui-icon-rate-solid"></i> ' + res.manager_name;
                     getFactories();
                 }
             },
@@ -232,24 +231,21 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             let data = obj.data;
-            const {manager_name, id} = data;
-            data.del_id = id;
             if (obj.event === 'del') {
-                const message = '真的删除用户' + '<label style="color: darkred">' + manager_name + '</label>' + '吗？';
+                const message = '真的删除用户' + '<label style="color: darkred">' + data.manager_name + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
                     const delLoading = layer.load(1);
                     layui.$.ajax({
                         url: '/delUser', //提交接口
                         type: 'post',
-                        data: {...data, token: localStorage.getItem('token')},
+                        data: {del_id: data.id, token: localStorage.getItem('token')},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);
-                            const {code, message} = res;
                             if (res.code == 0) {
                                 obj.del();
                             } else {
-                                codeMessage(code, message);
+                                codeMessage(res.code, res.message);
                             }
                         },
                         error: function (mas, textStatus, errorThrown) {
@@ -276,24 +272,34 @@
         //监听提交
         form.on('submit(formDemo)', function (data) {
             const loadStart = layer.load();
+            let field = data.field;
             let url = '';
             if (editID == '') {
                 url = '/addUser';
             } else {
                 url = '/editUser'
-                data.field.editID = editID;
             }
+            console.log(field);
             layui.$.ajax({
-                url, //提交接口
+                url: url, //提交接口
                 type: 'post',
-                data: {...data.field, token: localStorage.getItem('token')},
+                data: {
+                    username: field.username,
+                    password: field.password,
+                    manager_name: field.manager_name,
+                    user_type: field.user_type,
+                    workshop_id: field.workshop_id,
+                    from_factory_id: field.from_factory_id,
+                    is_work: field.is_work,
+                    editID: editID,
+                    token: localStorage.getItem('token')
+                },
                 success: function (res) {
                     layer.close(loadStart);
-                    const {code, message} = res;
-                    if (code == 0) {
-                        window.location.href = '';
+                    if (res.code == 0) {
+                        window.location.reload();
                     } else {
-                        codeMessage(code, message);
+                        codeMessage(res.code, res.message);
                     }
                 },
                 error: function (mas, textStatus, errorThrown) {
@@ -309,7 +315,7 @@
         option.setAttribute("value", '');
         option.innerText = '选择工厂';
         select.appendChild(option)
-        for (const i in data) {
+        for (let i in data) {
             const option = document.createElement("option");
             option.setAttribute("value", data[i].id);
             option.innerText = data[i].from_factory;
@@ -326,7 +332,7 @@
         option.setAttribute("value", '');
         option.innerText = '选择部门';
         select.appendChild(option)
-        for (const i in data) {
+        for (let i in data) {
             const option = document.createElement("option");
             option.setAttribute("value", data[i].id);
             option.innerText = data[i].workshop;
