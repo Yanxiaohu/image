@@ -219,7 +219,16 @@
                 data: {token: token, id: obj.data.id},
                 success: function (res) {
                     if (res.code == 0) {
-                        window.open(res.url, '_blank');
+                        const url = res.url;
+                        if (url.indexOf(".dwg") != -1) {
+                            if (isIE()){
+                                openPostWindow('/mxDrawX', {url: res.url});
+                            } else {
+                                window.open(res.url, '_blank');
+                            }
+                        } else {
+                            window.open(res.url, '_blank');
+                        }
                     } else {
                         const work = function () {
                             layui.$.ajax({
@@ -237,6 +246,44 @@
             });
         });
     }
+
+    function openPostWindow(url, data) { // data 是发送请求的参数对象
+        var tempForm = document.createElement("form");
+        tempForm.id = "tempForm1";
+        tempForm.method = "post";
+        tempForm.action = url;
+        tempForm.target = "_blank"; //打开新页面
+        for (var key in data) {
+            var hideInput = document.createElement("input");
+            hideInput.type = "hidden";
+            hideInput.name = key; //参数名
+            hideInput.value = data[key]; //实际参数值
+            tempForm.appendChild(hideInput);
+        }
+        if (document.all) {
+            tempForm.attachEvent("onsubmit", function () {
+            });        //IE
+        } else {
+            var subObj = tempForm.addEventListener("submit", function () {
+            }, false);    //firefox
+        }
+        document.body.appendChild(tempForm);
+        if (document.all) {
+            tempForm.fireEvent("onsubmit");
+        } else {
+            // tempForm.dispatchEvent(new Event("submit"));
+        }
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+    }
+
+    function isIE() {
+        if (window.navigator.userAgent.indexOf("MSIE") >= 1)
+            return true;
+        else
+            return false;
+    }
+
     const codeMessage = function (code, message, work) {
         if (code == 0) {
             layer.msg(JSON.stringify(message), {icon: 1});

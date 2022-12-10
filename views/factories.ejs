@@ -180,7 +180,7 @@
                 success: function (res) {
                     layer.close(loadStart);
                     if (res.code == 0) {
-                        window.location.reload();
+                        window.location.href = '/factories';
                     } else {
                         codeMessage(res.code, res.message);
                     }

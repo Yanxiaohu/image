@@ -35,8 +35,8 @@ const pageApply = router.get('/apply', function (req, res, next) {
     res.render('apply', {title: 'Express'});
 });
 
-const mxDrawX = router.get('/mxDrawX', function (req, res, next) {
-    res.render('mxDrawX', {title: 'Express'});
+const mxDrawX = router.post('/mxDrawX', function (req, res, next) {
+    res.render('mxDrawX', {url: req.body.url});
 });
 
 module.exports = {
