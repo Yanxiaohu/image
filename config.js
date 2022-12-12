@@ -122,6 +122,7 @@ const verifyToken = function (token, ip, res, work) {
 /** 用户操作 **/
 const getUsers = function (req, res) {
     const {page, limit, token} = req.query;
+    const cachePage = (page - 1) * limit, cacheLimit = limit * 1;
     const work = function (decoded) {
         if (decoded.user_type != 1) {
             res.send({
@@ -129,7 +130,27 @@ const getUsers = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            conn.query('select u.id,u.username,u.manager_name,u.user_type,u.times,u.last_login_time,u.password,u.is_work,u.workshop_id,u.from_factory_id,f.from_factory,w.workshop from user_info_list u,workshop_info_list w,factory_info_list f where u.from_factory_id = f.id and u.workshop_id = w.id limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+            conn.query(`select u.id,
+                               u.username,
+                               u.manager_name,
+                               u.user_type,
+                               u.times,
+                               u.last_login_time,
+                               u.password,
+                               u.is_work,
+                               u.workshop_id,
+                               u.from_factory_id,
+                               f.from_factory,
+                               w.workshop
+                        from user_info_list u
+                                 left outer join
+                        workshop_info_list w
+                        on u.workshop_id = w.id
+                                 left outer join
+                        factory_info_list f
+                        on u.from_factory_id = f.id
+                            limit ${cachePage}
+                           , ${cacheLimit}`, (err, results) => {
                 if (err) return console.log(err.message)
                 conn.query('select count(*) count from user_info_list', (err, count) => {
                     if (err) return console.log(err.message)
