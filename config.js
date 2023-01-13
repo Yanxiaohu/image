@@ -657,7 +657,10 @@ const getWorkshops = function (req, res) {
             });
         } else {
             if (from_factory_id == '' || from_factory_id == null) {
-                conn.query('select id,workshop,from_factory,from_factory_id,manage_time,manager_name from workshop_info_list limit ?,?', [(page - 1) * limit, limit * 1], (err, results) => {
+                conn.query(`select w.id, w.workshop, f.from_factory, w.manage_time, w.manager_name
+                            from workshop_info_list w,
+                                 factory_info_list f limit ?,?
+                `, [(page - 1) * limit, limit * 1], (err, results) => {
                     if (err) return console.log(err.message)
                     conn.query('select count(*) count from workshop_info_list', (err, count) => {
                         if (err) return console.log(err.message)
