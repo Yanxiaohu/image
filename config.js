@@ -497,7 +497,7 @@ const getLogs = function (req, res) {
 const addLogs = function (manager_name, manager_id, action_name, change_name, change_from) {
     conn.query('INSERT INTO actions_list (manager_name,manager_id,action_name,change_name,change_from,manage_time) VALUES (?,?,?,?,?,?)', [manager_name, manager_id, action_name, change_name, change_from, new Date().getTime()]);
 }
-/** 工厂操作 **/
+/** 模块操作 **/
 const getFactories = function (req, res) {
     const {page, limit, token} = req.query;
     const work = function (decoded) {
@@ -540,14 +540,14 @@ const addFactory = function (req, res) {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
-                            message: '工厂新增成功',
+                            message: '模块新增成功',
                         });
-                        addLogs(decoded.manager_name, decoded.id, '增加', from_factory, '工厂');
+                        addLogs(decoded.manager_name, decoded.id, '增加', from_factory, '模块');
                     })
                 } else {
                     res.send({
                         code: 1,
-                        message: '工厂名已存在，请更换',
+                        message: '模块名已存在，请更换',
                     });
                 }
             });
@@ -570,14 +570,14 @@ const editFactory = function (req, res) {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
-                            message: '工厂成功编辑',
+                            message: '模块成功编辑',
                         });
                     })
-                    addLogs(decoded.manager_name, decoded.id, '编辑', from_factory, '工厂');
+                    addLogs(decoded.manager_name, decoded.id, '编辑', from_factory, '模块');
                 } else {
                     res.send({
                         code: 1,
-                        message: '工厂名已存在，请更改后重试',
+                        message: '模块名已存在，请更改后重试',
                     });
                 }
             });
@@ -602,9 +602,9 @@ const delFactory = function (req, res) {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
-                            message: '工厂已删除',
+                            message: '模块已删除',
                         });
-                        addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '工厂');
+                        addLogs(decoded.manager_name, decoded.id, '删除', from_factory, '模块');
                     })
                 } else {
                     res.send({
@@ -896,18 +896,15 @@ const editApply = function (req, res) {
 const selectInfoFromParentID = function (req, res) {
     const {id, token} = req.query;
     const work = function () {
-        conn.query(`SELECT b.image_id bom_id,
-                           s.image_id id,
-                           l.image_name,
+        conn.query(`SELECT l.image_name,
                            l.url,
                            l.up_time,
                            l.manager_name,
                            f.from_factory
-                    FROM image_bom b,
-                         image_bom_sub s
+                    FROM image_bom_sub s
                              LEFT JOIN image_info_list l ON s.image_id = l.id
                              LEFT JOIN factory_info_list f on l.from_factory_id = f.id
-                    WHERE b.image_id = ?
+                    WHERE s.parent_id = ?
         `, [id], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
@@ -940,7 +937,7 @@ const addSubImage = function (req, res) {
             } else {
                 res.send({
                     code: 3,
-                    message: '不能重复添加子表'
+                    message: '不能重复添加子图'
                 });
             }
         });

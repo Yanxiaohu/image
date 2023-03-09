@@ -12,7 +12,7 @@
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item"><a href="/users">用户管理</a></li>
-        <li class="layui-nav-item "><a href="/factories">工厂管理</a></li>
+        <li class="layui-nav-item "><a href="/factories">模块管理</a></li>
         <li class="layui-nav-item layui-this"><a href="/workshop">部门管理</a></li>
         <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
@@ -135,7 +135,7 @@
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'workshop', title: '部门名称', width: 180}
-                , {field: 'from_factory', title: '所属工厂', width: 180}
+                , {field: 'from_factory', title: '所属模块', width: 180}
                 , {field: 'manager_name', title: '操作员', width: 100}
                 , {field: 'manage_time', title: '添加时间'}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
@@ -251,7 +251,7 @@
     const createSelect = function (select) {
         const option = document.createElement("option");
         option.setAttribute("value", '');
-        option.innerText = '根据工厂区分';
+        option.innerText = '根据模块区分';
         select.appendChild(option)
         for (let i in factories) {
             const option = document.createElement("option");

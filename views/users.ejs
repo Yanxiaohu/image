@@ -12,7 +12,7 @@
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item layui-this"><a href="/users">用户管理</a></li>
-        <li class="layui-nav-item"><a href="/factories">工厂管理</a></li>
+        <li class="layui-nav-item"><a href="/factories">模块管理</a></li>
         <li class="layui-nav-item"><a href="/workshop">部门管理</a></li>
         <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
@@ -64,7 +64,7 @@
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">工厂</label>
+        <label class="layui-form-label">模块</label>
         <div class="layui-input-inline">
             <select name="from_factory_id" lay-verify="required" id="factory_names_add" lay-filter="factory_names_add">
             </select>
@@ -178,7 +178,7 @@
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'username', title: '登录用户名', width: 120}
                 , {field: 'user_type', title: '用户类型', width: 100}
-                , {field: 'from_factory', title: '工厂', width: 120}
+                , {field: 'from_factory', title: '模块', width: 120}
                 , {field: 'workshop', title: '车间/科室', width: 120}
                 , {field: 'manager_name', title: '用户姓名', width: 90}
                 , {field: 'is_work', title: '是否在用', width: 86}
@@ -314,7 +314,7 @@
     const createSelect = function (select, data) {
         const option = document.createElement("option");
         option.setAttribute("value", '');
-        option.innerText = '选择工厂';
+        option.innerText = '选择模块';
         select.appendChild(option)
         for (let i in data) {
             const option = document.createElement("option");

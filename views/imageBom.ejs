@@ -10,8 +10,7 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item "><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item " id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a></li>
-        <li class="layui-nav-item layui-this" id="imageBom"><a href="/imageBom">BOM管理</a></li>
+        <li class="layui-nav-item layui-this" id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item " id="actionsLogs" style="display: none"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item " id="applyList" style="display: none"><a href="/apply">申请<span
@@ -140,7 +139,7 @@
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'image_name', title: '子图名称'}
-                , {field: 'from_factory', title: '所属工厂'}
+                , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
