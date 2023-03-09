@@ -773,44 +773,44 @@ const imageRead = function (req, res) {
         conn.query('select url ,from_factory_id from image_info_list  where id = ?', [id], (err, result) => {
             if (err) return console.log(err.message)
             const {url, from_factory_id} = result[0];
-            if (factory_id == from_factory_id || user_type == 1) {
-                res.send(
-                    {
-                        code: 0,
-                        url,
-                    }
-                );
-            } else {
-                conn.query('select gree_time ,duration,is_agree from apply_list  where apply_id = ?', [decoded.id], (err, result1) => {
-                    if (err) return console.log(err.message)
-                    if (result1.length > 0) {
-                        const {duration, is_agree} = result1[0];
-                        const endTime = duration * 1 - new Date().getTime();
-                        if (is_agree == 2 && endTime > 0) {
-                            res.send(
-                                {
-                                    code: 0,
-                                    url,
-                                    endTime
-                                }
-                            );
-                        } else {
-                            res.send(
-                                {
-                                    code: 7,
-                                    message: '您没有权限，查看该图纸是否申请查看？',
-                                });
-                        }
-                    } else {
-                        res.send(
-                            {
-                                code: 7,
-                                message: '您没有权限，查看该图纸是否申请查看？',
-                            });
-                    }
-                })
-
-            }
+            // if (factory_id == from_factory_id || user_type == 1) {
+            res.send(
+                {
+                    code: 0,
+                    url,
+                }
+            );
+            // } else {
+            //     conn.query('select gree_time ,duration,is_agree from apply_list  where apply_id = ?', [decoded.id], (err, result1) => {
+            //         if (err) return console.log(err.message)
+            //         if (result1.length > 0) {
+            //             const {duration, is_agree} = result1[0];
+            //             const endTime = duration * 1 - new Date().getTime();
+            //             if (is_agree == 2 && endTime > 0) {
+            //                 res.send(
+            //                     {
+            //                         code: 0,
+            //                         url,
+            //                         endTime
+            //                     }
+            //                 );
+            //             } else {
+            //                 res.send(
+            //                     {
+            //                         code: 7,
+            //                         message: '您没有权限，查看该图纸是否申请查看？',
+            //                     });
+            //             }
+            //         } else {
+            //             res.send(
+            //                 {
+            //                     code: 7,
+            //                     message: '您没有权限，查看该图纸是否申请查看？',
+            //                 });
+            //         }
+            //     })
+            //
+            // }
         });
     }
     verifyToken(token, req.ip, res, work);
@@ -892,6 +892,80 @@ const editApply = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
+
+const selectInfoFromParentID = function (req, res) {
+    const {id, token} = req.query;
+    const work = function () {
+        conn.query(`SELECT b.image_id bom_id,
+                           s.image_id id,
+                           l.image_name,
+                           l.url,
+                           l.up_time,
+                           l.manager_name,
+                           f.from_factory
+                    FROM image_bom b,
+                         image_bom_sub s
+                             LEFT JOIN image_info_list l ON s.image_id = l.id
+                             LEFT JOIN factory_info_list f on l.from_factory_id = f.id
+                    WHERE b.image_id = ?
+        `, [id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                data: results,
+                message: '操作成功'
+            });
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
+const addSubImage = function (req, res) {
+    const {image_id, parent_id, token} = req.body;
+    const work = function () {
+        conn.query(`SELECT COUNT(*) count
+                    FROM image_bom_sub
+                    WHERE parent_id = ?
+                      AND image_id = ?`, [parent_id, image_id], (err, results) => {
+            if (err) return console.log(err.message)
+            console.log(results);
+            if (results[0].count == 0) {
+                conn.query(`INSERT INTO image_bom_sub(image_id, parent_id)
+                            VALUES (?, ?)`, [image_id, parent_id], (err, results) => {
+                    if (err) return console.log(err.message)
+                    res.send({
+                        code: 0,
+                        message: '操作成功'
+                    });
+                })
+            } else {
+                res.send({
+                    code: 3,
+                    message: '不能重复添加子表'
+                });
+            }
+        });
+
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const delSubImage = function (req, res) {
+    const {token, bom_id, id} = req.body;
+    const work = function (decoded) {
+        conn.query(`delete
+                    from image_bom_sub
+                    where image_id = ?
+                      and parent_id = ?`, [id, bom_id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                message: '子表数据已删除',
+            });
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
 module.exports = {
     login,
     getUsers,
@@ -913,5 +987,5 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply
+    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage
 };

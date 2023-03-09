@@ -42,6 +42,7 @@
 </div>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="tree">树图</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
@@ -135,7 +136,7 @@
                 , {field: 'from_factory', title: '所属工厂'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
-                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
+                , {fixed: 'right', width: 180, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
                 const $ = layui.$;
@@ -155,7 +156,8 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             const data = obj.data
-            if (obj.event == 'del') {
+            const {event} = obj;
+            if (event == 'del') {
                 const message = '真的删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '吗？';
                 layer.confirm(message, function (index) {
                     const delLoading = layer.load(1);
@@ -179,8 +181,11 @@
                         }
                     });
                 });
-            } else {
+            } else if (event == 'edit') {
                 window.open(data.url, '_blank');
+            } else {
+                const  url = '/imageBom?id='+data.id
+                window.open(url, '_blank');
             }
         });
     }

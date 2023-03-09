@@ -16,7 +16,7 @@ const {
     addWorkshop, getWorkshops, editWorkshop, delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply
+    apply, getApply, editApply,selectInfoFromParentID,addSubImage,delSubImage
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
@@ -96,6 +96,15 @@ app.get('/getApply', function (req, res) {
 app.post('/editApply', function (req, res) {
     editApply(req, res);
 })
+app.get('/selectInfoFromParentID', function (req, res) {
+    selectInfoFromParentID(req, res);
+})
+app.post('/addSubImage', function (req, res) {
+    addSubImage(req, res);
+})
+app.post('/delSubImage', function (req, res) {
+    delSubImage(req, res);
+})
 // ------------------- 前端路由页面 ----------------------------//
 const {
     index,
@@ -107,7 +116,8 @@ const {
     factories,
     workshop,
     pageApply,
-    mxDrawX
+    mxDrawX,
+    imageBom
 } = require('./routes/index');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -117,7 +127,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop, pageApply,mxDrawX);
+app.use(index, users, images, imagesManager, actionsLogs, imagesUpload, factories, workshop, pageApply,mxDrawX,imageBom);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));

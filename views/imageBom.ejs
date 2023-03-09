@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>图纸列表展示</title>
+    <title>图片Bom</title>
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
 <div>
     <ul class="layui-nav">
-        <li class="layui-nav-item layui-this"><a href="/imagesShow">图库</a></li>
+        <li class="layui-nav-item "><a href="/imagesShow">图库</a></li>
         <li class="layui-nav-item " id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a></li>
-        <li class="layui-nav-item "id="imageBom"><a href="/imageBom">BOM管理</a></li>
+        <li class="layui-nav-item layui-this" id="imageBom"><a href="/imageBom">BOM管理</a></li>
         <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item " id="actionsLogs" style="display: none"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item " id="applyList" style="display: none"><a href="/apply">申请<span
@@ -24,48 +24,21 @@
             </dl>
         </li>
     </ul>
-    <form class="layui-form" action="" lay-filter="factory_names_add"
-          style="padding: 0;width: 200px;margin-top: 10px;display: inline-block">
-        <div class="layui-form-item" style="margin-bottom: 0">
-            <div class="layui-input-block" style="margin-left: 0">
-                <select name="from_factory_id" id="factory_names_add" lay-filter="factory_names_add">
-                </select>
-            </div>
+    <script type="text/html" id="toolbarDemo">
+        <div class="layui-btn-container">
+            <button class="layui-btn layui-btn-sm" lay-event="add">添加子图</button>
         </div>
-    </form>
-    <form class="layui-form" action="" lay-filter="image_name_filter"
-          style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
-        <div class="layui-form-item">
-            <div class="layui-input-inline">
-                <input type="text" name="image_name" required lay-verify="required" placeholder="请输入名称"
-                       autocomplete="off" class="layui-input">
-            </div>
-            <div class="layui-input-inline">
-                <button class="layui-btn" lay-submit lay-filter="formDemo">搜索</button>
-                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-            </div>
-        </div>
-    </form>
+    </script>
     <table id="demo" lay-filter="test" style="width: 100%"></table>
 </div>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
     layui.$.ajaxSetup({cache: false})
-    layui.use('form', function () {
-        const form = layui.form;
-        //监听提交
-        form.on('submit(formDemo)', function (data) {
-            tableRender(data.field.image_name)
-            return false;
-        });
-        form.on('select(factory_names_add)', function () {
-            tableRender(form.val("image_name_filter").image_name);
-        });
-    });
     layui.use(function () {
         const layer = layui.layer;
         const loadStart = layer.load();
@@ -95,7 +68,7 @@
                         star = 'layui-icon-rate';
                     }
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + res.manager_name;
-                    getFactories(res.from_factory_id);
+                    tableRender();
                 } else {
                     codeMessage(res.code, res.message);
                 }
@@ -155,43 +128,18 @@
             return false;
         });
     });
-    const getFactories = function (from_factory_id) {
-        layui.$.ajax({
-            url: '/getFactories', //提交接口
-            type: 'get',
-            data: {token: localStorage.getItem('token'), page: 1, limit: 100},
-            success: function (res) {
-                factories = res.data;
-                let select1 = document.getElementById('factory_names_add');
-                createSelect(select1);
-                layui.form.val('factory_names_add', {from_factory_id: from_factory_id});
-                tableRender();
-            }
-        });
-    }
-    const createSelect = function (select) {
-        for (let i in factories) {
-            let option = document.createElement("option");
-            option.setAttribute("value", factories[i].id);
-            option.innerText = factories[i].from_factory;
-            select.appendChild(option)
-        }
-        layui.use('form', function () {
-            const form = layui.form;
-            form.render("select");
-        });
-    }
-    const tableRender = function (image_name) {
+
+    const tableRender = function () {
         const table = layui.table;
-        const from_factory_id = layui.form.val("factory_names_add").from_factory_id;
         const renderDir = {
             elem: '#demo'
-            , url: '/getImages' //数据接口
+            , url: '/selectInfoFromParentID' //数据接口
             , page: true //开启分页
-            , where: {image_name: image_name, from_factory_id: from_factory_id, token: localStorage.getItem('token')}
+            , toolbar: '#toolbarDemo'
+            , where: {token: localStorage.getItem('token'), id: getQueryString('id')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图片名称'}
+                , {field: 'image_name', title: '子图名称'}
                 , {field: 'from_factory', title: '所属工厂'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
@@ -213,96 +161,37 @@
         };
         table.render(renderDir);
         table.on('tool(test)', function (obj) {
-            const token = localStorage.getItem('token');
-            layui.$.ajax({
-                url: '/imageRead', //提交接口
-                type: 'get',
-                data: {token: token, id: obj.data.id},
-                success: function (res) {
-                    if (res.code == 0) {
-                        const url = res.url;
-                        if (url.indexOf(".dwg") != -1) {
-                            if (getExplorer=='ie') {
-                                openPostWindow('/mxDrawX', {url: res.url});
-                            } else {
-                                window.open(res.url, '_blank');
-                            }
-                        } else {
-                            window.open(res.url, '_blank');
-                        }
-                    } else {
-                        const work = function () {
-                            layui.$.ajax({
-                                url: '/apply', //提交接口
-                                type: 'post',
-                                data: {token: localStorage.getItem('token')},
-                                success: function (res) {
-                                    codeMessage(res.code, res.message);
-                                }
-                            });
-                        }
-                        codeMessage(res.code, res.message, work);
+            console.log(obj.event);
+            const {bom_id, id, url} = obj.data;
+            if (obj.event == 'edit') {
+                window.open(url, '_blank');
+            } else {
+                const token = localStorage.getItem('token');
+                layui.$.ajax({
+                    url: '/delSubImage', //提交接口
+                    type: 'post',
+                    data: {token: token, bom_id, id},
+                    success: function (res) {
+                        codeMessage(res.code, res.message);
                     }
-                }
-            });
+                });
+            }
+        });
+
+        table.on('toolbar(test)', function (obj) {
+            switch (obj.event) {
+                case 'add':
+                    layer.open({
+                        title: '添加子图',
+                        type: 1,
+                        content: layui.$('#addModelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                    });
+                    layui.form.val('addModel', {});
+                    break;
+            }
         });
     }
 
-    function openPostWindow(url, data) { // data 是发送请求的参数对象
-        var tempForm = document.createElement("form");
-        tempForm.id = "tempForm1";
-        tempForm.method = "post";
-        tempForm.action = url;
-        tempForm.target = "_blank"; //打开新页面
-        for (var key in data) {
-            var hideInput = document.createElement("input");
-            hideInput.type = "hidden";
-            hideInput.name = key; //参数名
-            hideInput.value = data[key]; //实际参数值
-            tempForm.appendChild(hideInput);
-        }
-        if (document.all) {
-            tempForm.attachEvent("onsubmit", function () {
-            });        //IE
-        } else {
-            var subObj = tempForm.addEventListener("submit", function () {
-            }, false);    //firefox
-        }
-        document.body.appendChild(tempForm);
-        if (document.all) {
-            tempForm.fireEvent("onsubmit");
-        } else {
-            // tempForm.dispatchEvent(new Event("submit"));
-        }
-        tempForm.submit();
-        document.body.removeChild(tempForm);
-    }
-
-    const getExplorer = (function () {
-        var explorer = window.navigator.userAgent,
-            compare = function (s) {
-                return (explorer.indexOf(s) >= 0);
-            },
-            ie11 = (function () {
-                return ("ActiveXObject" in window)
-            })();
-        if (compare("MSIE") || ie11) {
-            return 'ie';
-        } else if (compare("Firefox") && !ie11) {
-            return 'Firefox';
-        } else if (compare("Chrome") && !ie11) {
-            if (explorer.indexOf("Edge") > -1) {
-                return 'Edge';
-            } else {
-                return 'Chrome';
-            }
-        } else if (compare("Opera") && !ie11) {
-            return 'Opera';
-        } else if (compare("Safari") && !ie11) {
-            return 'Safari';
-        }
-
-    })()
 
     const codeMessage = function (code, message, work) {
         if (code == 0) {
@@ -322,13 +211,6 @@
             });
         } else if (code == 1) {
             layer.msg(JSON.stringify(message), {icon: 2});
-        } else if (code == 7) {
-            layer.confirm(message, {
-                btn: ['前往申请', '不申请'] //可以无限个按钮
-            }, function (index) {
-                work();
-                layer.close(index);
-            });
         } else {
             layer.open({
                 title: 'CODE码是' + code,
@@ -348,6 +230,17 @@
         localStorage.setItem('token', '');
         window.location.href = '/';
     }
+
+    function getQueryString(name) {
+        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        let r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return unescape(r[2]);
+        }
+        ;
+        return null;
+    }
+
 </script>
 <form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""
       id="infoMadelID">
@@ -384,5 +277,99 @@
         </div>
     </div>
 </form>
+
+<form class="layui-form" lay-filter="addModel"
+      style="margin-top: 15px;margin-right: 15px;display: none" action=""
+      id="addModelID">
+    <div class="layui-form-item">
+        <label class="layui-form-label">需添加图号</label>
+        <div class="layui-input-block">
+            <input type="text" name="" placeholder="请输入" autocomplete="off" class="layui-input" id="inputid">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">确认图纸</label>
+        <div class="layui-input-inline" style="width: auto">
+            <select name="id" lay-verify="required" id="image_add_id" lay-filter="image_add"></select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="add_image_submit">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+<script>
+    let $ = layui.$;
+    $(function () {
+        //输入框的值改变时触发
+        $("#inputid").on("input", function (e) {
+            //获取input输入的值
+            const image_name = e.delegateTarget.value;
+            if (image_name.length >= 4) {
+                $.ajax({
+                    url: '/getImages', //提交接口
+                    type: 'get',
+                    data: {token: localStorage.getItem('token'), image_name: image_name,},
+                    success: function (res) {
+                        if (res.code == 0) {
+                            let select = document.getElementById('image_add_id');
+                            createSelect(select, res.data);
+                        } else {
+                            codeMessage(res.code, res.message);
+                        }
+                    },
+                    error: function (mas, textStatus, errorThrown) {
+                        layer.msg('网络错误，请联系管理员');
+                    }
+                });
+            }
+        });
+    });
+    const createSelect = function (select, data) {
+        select.options.length = 0;
+        const option = document.createElement("option");
+        select.appendChild(option)
+        for (let i in data) {
+            const option = document.createElement("option");
+            option.setAttribute("value", data[i].id);
+            option.innerText = data[i].image_name;
+            select.appendChild(option)
+        }
+        layui.use('form', function () {
+            const form = layui.form;
+            form.render("select");
+        });
+    }
+
+    //监听提交
+    layui.form.on('submit(add_image_submit)', function (data) {
+        console.log(data.field);
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/addSubImage', //提交接口
+            type: 'post',
+            data: {
+                parent_id: getQueryString('id'),
+                image_id: data.field.id,
+                token: localStorage.getItem('token')
+            },
+            success: function (res) {
+                layer.close(loadStart);
+                if (res.code == 0) {
+                    window.location.reload();
+                } else {
+                    codeMessage(res.code, res.message)
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.close(loadStart);
+                layer.msg('网络错误，请联系管理员');
+            }
+        });
+        return false;
+    });
+</script>
 </body>
 </html>

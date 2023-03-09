@@ -39,6 +39,10 @@ const mxDrawX = router.post('/mxDrawX', function (req, res, next) {
     res.render('mxDrawX', {url: req.body.url});
 });
 
+const imageBom = router.get('/imageBom', function (req, res, next) {
+    res.render('imageBom', {title: 'Express'});
+});
+
 module.exports = {
     index,
     users,
@@ -49,5 +53,6 @@ module.exports = {
     factories,
     workshop,
     pageApply,
-    mxDrawX
+    mxDrawX,
+    imageBom
 };
