@@ -10,7 +10,8 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item "><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item layui-this" id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a></li>
+        <li class="layui-nav-item layui-this" id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a>
+        </li>
         <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item " id="actionsLogs" style="display: none"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item " id="applyList" style="display: none"><a href="/apply">申请<span
@@ -160,8 +161,7 @@
         };
         table.render(renderDir);
         table.on('tool(test)', function (obj) {
-            console.log(obj.event);
-            const {bom_id, id, url} = obj.data;
+            const {parent_id, image_id, url} = obj.data;
             if (obj.event == 'edit') {
                 window.open(url, '_blank');
             } else {
@@ -169,9 +169,9 @@
                 layui.$.ajax({
                     url: '/delSubImage', //提交接口
                     type: 'post',
-                    data: {token: token, bom_id, id},
+                    data: {token: token, parent_id, image_id},
                     success: function (res) {
-                        codeMessage(res.code, res.message);
+                        window.location.reload();
                     }
                 });
             }
@@ -292,8 +292,8 @@
             <select name="id" lay-verify="required" id="image_add_id" lay-filter="image_add"></select>
         </div>
     </div>
-    <div class="layui-form-item">
-        <div class="layui-input-block">
+    <div class="layui-form-item" >
+        <div class="layui-input-block" style="margin-top: 100px">
             <button class="layui-btn" lay-submit lay-filter="add_image_submit">立即提交</button>
             <button type="reset" class="layui-btn layui-btn-primary">重置</button>
         </div>

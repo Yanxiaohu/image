@@ -897,6 +897,10 @@ const selectInfoFromParentID = function (req, res) {
     const {id, token} = req.query;
     const work = function () {
         conn.query(`SELECT l.image_name,
+                           s.id,
+                           s.parent_id,
+                           s.image_id,
+                           s.up_time,
                            l.url,
                            l.up_time,
                            l.manager_name,
@@ -924,10 +928,20 @@ const addSubImage = function (req, res) {
                     WHERE parent_id = ?
                       AND image_id = ?`, [parent_id, image_id], (err, results) => {
             if (err) return console.log(err.message)
-            console.log(results);
             if (results[0].count == 0) {
-                conn.query(`INSERT INTO image_bom_sub(image_id, parent_id)
-                            VALUES (?, ?)`, [image_id, parent_id], (err, results) => {
+                conn.query(`SELECT COUNT(*) count
+                            FROM image_bom_sub
+                            WHERE image_id = ?`, [parent_id], (err, parent) => {
+                    if (err) return console.log(err.message)
+                    if (parent[0].count == 0) {
+                        conn.query(`INSERT INTO image_bom_sub(image_id, up_time)
+                                    VALUES (?, ?)`, [parent_id, new Date()], (err, results) => {
+                            if (err) return console.log(err.message)
+                        })
+                    }
+                });
+                conn.query(`INSERT INTO image_bom_sub(image_id, parent_id, up_time)
+                            VALUES (?, ?, ?)`, [image_id, parent_id, new Date()], (err, results) => {
                     if (err) return console.log(err.message)
                     res.send({
                         code: 0,
@@ -947,21 +961,85 @@ const addSubImage = function (req, res) {
 }
 
 const delSubImage = function (req, res) {
-    const {token, bom_id, id} = req.body;
-    const work = function (decoded) {
+    const {token, parent_id, image_id} = req.body;
+    const work = function () {
         conn.query(`delete
                     from image_bom_sub
                     where image_id = ?
-                      and parent_id = ?`, [id, bom_id], (err, results) => {
+                      and parent_id = ?`, [image_id, parent_id], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
                 message: '子表数据已删除',
             });
+            conn.query(`SELECT COUNT(*) count
+                        FROM image_bom_sub
+                        WHERE parent_id = ?`, [parent_id], (err, parent) => {
+                if (err) return console.log(err.message)
+                if (parent[0].count == 0) {
+                    conn.query(`delete
+                                from image_bom_sub
+                                where image_id = ?`, [parent_id], () => {
+                    })
+                }
+            });
         })
     }
     verifyToken(token, req.ip, res, work);
 }
+
+const selectTree = function (req, res) {
+    const {image_id, token} = req.query;
+    const work = function () {
+        conn.query(`SELECT s.image_id, s.parent_id, l.image_name, l.url
+                    FROM image_bom_sub s
+                             LEFT JOIN image_info_list l ON s.image_id = l.id
+                    WHERE parent_id = ANY (SELECT parent_id
+                                           FROM image_bom_sub
+                                           WHERE parent_id = ANY (SELECT parent_id
+                                                                  FROM image_bom_sub
+                                                                  WHERE parent_id = ?
+                                                                     or image_id = ?)
+                                              OR image_id = ANY (SELECT parent_id
+                                                                 FROM image_bom_sub
+                                                                 WHERE parent_id = ?
+                                                                    or image_id = ?)
+                    )
+                       OR image_id = ANY (SELECT parent_id
+                                          FROM image_bom_sub
+                                          WHERE parent_id = ANY (SELECT parent_id
+                                                                 FROM image_bom_sub
+                                                                 WHERE parent_id = ?
+                                                                    or image_id = ?)
+                                             OR image_id = ANY (SELECT parent_id
+                                                                FROM image_bom_sub
+                                                                WHERE parent_id = ?
+                                                                   or image_id = ?))
+        `, [image_id, image_id, image_id, image_id, image_id, image_id, image_id, image_id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                data: formatArray(results),
+                message: '操作成功'
+            });
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const formatArray = function (array) {
+    let array1 = [];
+    for (const arrayKey in array) {
+        array1.push(formatDict(array[arrayKey]));
+    }
+    return array1;
+}
+
+const formatDict = function (dict) {
+    const {image_id, image_name, url, parent_id} = dict;
+    return {title: image_name, id: image_id, href: url, spread: true, parent_id};
+}
+
 
 module.exports = {
     login,
@@ -984,5 +1062,5 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage
+    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage, selectTree
 };

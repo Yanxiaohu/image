@@ -16,7 +16,7 @@ const {
     addWorkshop, getWorkshops, editWorkshop, delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply,selectInfoFromParentID,addSubImage,delSubImage
+    apply, getApply, editApply,selectInfoFromParentID,addSubImage,delSubImage,selectTree
 } = require('./config');
 //拦截所有请求
 //extends:true 方法内部使用第三方模块请求的参数
@@ -104,6 +104,9 @@ app.post('/addSubImage', function (req, res) {
 })
 app.post('/delSubImage', function (req, res) {
     delSubImage(req, res);
+})
+app.get('/selectTree', function (req, res) {
+    selectTree(req, res);
 })
 // ------------------- 前端路由页面 ----------------------------//
 const {
