@@ -815,6 +815,24 @@ const imageRead = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
+
+const imageWithID = function (req, res) {
+    const {token, id} = req.query;
+    const work = function () {
+        conn.query('select image_name,note from image_info_list  where id = ?', [id], (err, result) => {
+            if (err) return console.log(err.message)
+            const {note, image_name} = result[0];
+            res.send(
+                {
+                    code: 0,
+                    note,
+                    image_name
+                }
+            );
+        });
+    }
+    verifyToken(token, req.ip, res, work);
+}
 const apply = function (req, res) {
     const {token} = req.body;
     const work = function (decoded) {
@@ -1062,5 +1080,5 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage, selectTree
+    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage, selectTree, imageWithID
 };

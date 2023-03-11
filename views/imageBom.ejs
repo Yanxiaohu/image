@@ -25,9 +25,10 @@
         </li>
     </ul>
     <script type="text/html" id="toolbarDemo">
-        <div class="layui-btn-container">
+        <div class="layui-btn-container layui-inline">
             <button class="layui-btn layui-btn-sm" lay-event="add">添加子图</button>
         </div>
+        图纸<span style="color: darkred" id="image_name_id"></span>的子图
     </script>
     <table id="demo" lay-filter="test" style="width: 100%"></table>
 </div>
@@ -69,6 +70,7 @@
                     }
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + res.manager_name;
                     tableRender();
+                    tableHeaderDescribe();
                 } else {
                     codeMessage(res.code, res.message);
                 }
@@ -156,7 +158,6 @@
                 } else {
                     codeMessage(res.code, res.message);
                 }
-
             }
         };
         table.render(renderDir);
@@ -190,7 +191,16 @@
             }
         });
     }
-
+    const tableHeaderDescribe = function () {
+        layui.$.ajax({
+            url: '/imageWithID', //数据接口
+            type: 'get',
+            data: {token: localStorage.getItem('token'), id: getQueryString('id')},
+            success: function (res) {
+                document.getElementById('image_name_id').innerText = res.image_name;
+            }
+        });
+    }
 
     const codeMessage = function (code, message, work) {
         if (code == 0) {
@@ -292,7 +302,7 @@
             <select name="id" lay-verify="required" id="image_add_id" lay-filter="image_add"></select>
         </div>
     </div>
-    <div class="layui-form-item" >
+    <div class="layui-form-item">
         <div class="layui-input-block" style="margin-top: 100px">
             <button class="layui-btn" lay-submit lay-filter="add_image_submit">立即提交</button>
             <button type="reset" class="layui-btn layui-btn-primary">重置</button>
