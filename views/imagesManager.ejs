@@ -25,7 +25,8 @@
         <i class="layui-icon">&#xe67c;</i>上传图纸
     </button>
     <i style="font-size:12px;color: darkred;position: relative;top:12px;">* 上传的图纸的名字会自动屏蔽汉字和空格</i>
-    <form class="layui-form" action="" style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
+    <form class="layui-form" action="" style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px"
+          lay-filter="image_name_filter">
         <div class="layui-form-item">
             <div class="layui-input-inline">
                 <input type="text" name="image_name" required lay-verify="required" placeholder="请输入名称"
@@ -42,7 +43,7 @@
 </div>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
-    <a class="layui-btn layui-btn layui-btn-xs" lay-event="tree">树图</a>
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="tree">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
@@ -53,7 +54,7 @@
         const form = layui.form;
         //监听提交
         form.on('submit(formDemo)', function (data) {
-            tableRender(data.field.image_name)
+            tableRender()
             return false;
         });
     });
@@ -123,16 +124,18 @@
             , accept: 'file'
         });
     });
-    const tableRender = function (image_name) {
+    const tableRender = function () {
         const table = layui.table;
+        const {image_name} = layui.form.val('image_name_filter');
         const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name: image_name, token: localStorage.getItem('token')}
+            , where: {image_name: image_name, editor: true, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图片名称'}
+                , {field: 'image_name', title: '图纸编号'}
+                , {field: 'note', title: '备注'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
@@ -184,7 +187,7 @@
             } else if (event == 'edit') {
                 window.open(data.url, '_blank');
             } else {
-                const  url = '/imageBom?id='+data.id
+                const url = '/imageBom?id=' + data.id
                 window.location.href = url;
             }
         });

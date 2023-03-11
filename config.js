@@ -355,28 +355,28 @@ const uploads = function (req, res) {
     )
 }
 const getImages = function (req, res) {
-    const {page = 1, limit = 10, image_name, token, from_factory_id} = req.query;
+    const {page = 1, limit = 10, image_name, token, from_factory_id, editor} = req.query;
     const cachePage = (page - 1) * limit;
     const cacheLimit = limit * 1;
     const cache_from_factory_id = from_factory_id * 1;
     const work = function (decoded) {
-        let ImageListSql = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory
+        let ImageListSql = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory, i.note
                             from image_info_list i,
                                  factory_info_list f
                             where i.from_factory_id = f.id`;
         let imagesCountSql = `select count(*) count
                               from image_info_list`;
         const limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
-        if (from_factory_id != undefined) {
-            if (image_name === undefined) {
+        if (from_factory_id != '' && !editor) {
+            if (image_name === '') {
                 ImageListSql = `${ImageListSql}  and i.from_factory_id = ${cache_from_factory_id} ${limit}`;
                 imagesCountSql = `${imagesCountSql}  where from_factory_id = ${cache_from_factory_id}`;
             } else {
                 ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id}  and image_name like "%${image_name}%" ${limit}`;
                 imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id} and image_name like "%${image_name}%"`;
             }
-        } else if (image_name === undefined) {
-            if (decoded.user_type != 1) {
+        } else if (image_name === '') {
+            if (editor == 'true' && decoded.user_type != 1) {
                 ImageListSql = `${ImageListSql}
                                   and i.from_factory_id = ${decoded.from_factory_id}
                                 ${limit}`

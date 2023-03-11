@@ -24,20 +24,15 @@
             </dl>
         </li>
     </ul>
-    <form class="layui-form" action="" lay-filter="factory_names_add"
-          style="padding: 0;width: 200px;margin-top: 10px;display: inline-block">
-        <div class="layui-form-item" style="margin-bottom: 0">
-            <div class="layui-input-block" style="margin-left: 0">
+    <form class="layui-form" action="" lay-filter="image_name_filter"
+          style="float: right;padding-top: 8px;margin-bottom: -20px">
+        <div class="layui-form-item">
+            <div class="layui-input-inline">
                 <select name="from_factory_id" id="factory_names_add" lay-filter="factory_names_add">
                 </select>
             </div>
-        </div>
-    </form>
-    <form class="layui-form" action="" lay-filter="image_name_filter"
-          style="width: 400px;float: right;padding-top: 8px;margin-bottom: -20px">
-        <div class="layui-form-item">
             <div class="layui-input-inline">
-                <input type="text" name="image_name" required lay-verify="required" placeholder="请输入名称"
+                <input type="text" name="image_name" placeholder="请输入名称"
                        autocomplete="off" class="layui-input">
             </div>
             <div class="layui-input-inline">
@@ -49,7 +44,7 @@
     <table id="demo" lay-filter="test" style="width: 100%"></table>
 </div>
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn layui-btn-xs" lay-event="tree">子级</a>
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="tree">树图</a>
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
 </script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
@@ -60,11 +55,8 @@
         const form = layui.form;
         //监听提交
         form.on('submit(formDemo)', function (data) {
-            tableRender(data.field.image_name)
+            tableRender()
             return false;
-        });
-        form.on('select(factory_names_add)', function () {
-            tableRender(form.val("image_name_filter").image_name);
         });
     });
     layui.use(function () {
@@ -163,6 +155,9 @@
             data: {token: localStorage.getItem('token'), page: 1, limit: 100},
             success: function (res) {
                 factories = res.data;
+                factories.unshift(
+                    {from_factory: "选择模块", id: ""}
+                );
                 let select1 = document.getElementById('factory_names_add');
                 createSelect(select1);
                 layui.form.val('factory_names_add', {from_factory_id: from_factory_id});
@@ -182,9 +177,9 @@
             form.render("select");
         });
     }
-    const tableRender = function (image_name) {
+    const tableRender = function () {
         const table = layui.table;
-        const from_factory_id = layui.form.val("factory_names_add").from_factory_id;
+        const {image_name, from_factory_id} = layui.form.val('image_name_filter');
         const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
@@ -192,7 +187,8 @@
             , where: {image_name: image_name, from_factory_id: from_factory_id, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图片名称'}
+                , {field: 'image_name', title: '图纸编号'}
+                , {field: 'note', title: '备注'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
@@ -231,6 +227,7 @@
                         if (res.code == 0) {
                             const ary = res.data;
                             treeRender(getTrees('', ary));
+
                             function getTrees(pid = '') {
                                 if (!pid) {
                                     // 如果没有父id（第一次递归的时候）将所有父级查询出来
