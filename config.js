@@ -388,21 +388,11 @@ const getImages = function (req, res) {
                 imagesCountSql = `${imagesCountSql}`
             }
         } else {
-            if (decoded.user_type != 1) {
-                ImageListSql = `${ImageListSql}
-                                  and i.from_factory_id = ${decoded.from_factory_id}
-                                  and image_name like "%${image_name}%"
-                                ${limit}`;
-                imagesCountSql = `${imagesCountSql}
-                                  where from_factory_id =${decoded.from_factory_id}
-                                    and image_name like "%${image_name}%"`;
-            } else {
-                ImageListSql = `${ImageListSql}
+            ImageListSql = `${ImageListSql}
                                   and image_name like "%${image_name}%"
                                     ${limit}`;
-                imagesCountSql = `${imagesCountSql}
+            imagesCountSql = `${imagesCountSql}
                                   where image_name like "%${image_name}%"`;
-            }
         }
         conn.query(ImageListSql, (err, results) => {
             if (err) return console.log(err.message)
@@ -431,21 +421,34 @@ const delImage = function (req, res) {
             });
             return false;
         }
-        conn.query('delete from image_info_list where id = ?', [del_id], (err, results) => {
+        conn.query(`SELECT COUNT(*) count
+                    FROM image_bom_sub
+                    WHERE parent_id = ? or image_id = ?`, [del_id, del_id], (err, result) => {
             if (err) return console.log(err.message)
-            fs.unlink('./uploads/' + trimZ(image_name), function (error) {
-                if (error) {
-                    console.log(error);
-                    return false;
-                }
-                console.log('删除文件成功');
-            })
-            res.send({
-                code: 0,
-                message: '图纸已删除',
-            });
-            addLogs(decoded.manager_name, decoded.id, '删除', image_name, '图纸',);
-        })
+            if (result[0].count <= 0) {
+                conn.query('delete from image_info_list where id = ?', [del_id], (err, results) => {
+                    if (err) return console.log(err.message)
+                    fs.unlink('./uploads/' + trimZ(image_name), function (error) {
+                        if (error) {
+                            console.log(error);
+                            return false;
+                        }
+                        console.log('删除文件成功');
+                    })
+                    res.send({
+                        code: 0,
+                        message: '图纸已删除',
+                    });
+                    addLogs(decoded.manager_name, decoded.id, '删除', image_name, '图纸',);
+                })
+            } else {
+                res.send({
+                    code: 3,
+                    message: '请删除二级树关联节点，再删除此图',
+                });
+            }
+        });
+
     }
     verifyToken(token, req.ip, res, work);
 }
@@ -833,6 +836,19 @@ const imageWithID = function (req, res) {
     }
     verifyToken(token, req.ip, res, work);
 }
+const editImage = function (req, res) {
+    const {id, note, token} = req.body;
+    const work = function () {
+        conn.query('update image_info_list set note=? where id=?', [note, id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                message: '模块成功编辑',
+            });
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
 const apply = function (req, res) {
     const {token} = req.body;
     const work = function (decoded) {
@@ -1009,7 +1025,7 @@ const delSubImage = function (req, res) {
 const selectTree = function (req, res) {
     const {image_id, token} = req.query;
     const work = function () {
-        conn.query(`SELECT s.image_id, s.parent_id, l.image_name, l.url
+        conn.query(`SELECT s.image_id, s.parent_id, l.image_name, l.url, l.note
                     FROM image_bom_sub s
                              LEFT JOIN image_info_list l ON s.image_id = l.id
                     WHERE parent_id = ANY (SELECT parent_id
@@ -1054,8 +1070,10 @@ const formatArray = function (array) {
 }
 
 const formatDict = function (dict) {
-    const {image_id, image_name, url, parent_id} = dict;
-    return {title: image_name, id: image_id, href: url, spread: true, parent_id};
+    const {image_id, image_name, note, url, parent_id} = dict;
+    const noteStr = note == null ? '' : '(' + note + ')';
+    const title = image_name + noteStr;
+    return {title, id: image_id, href: url, spread: true, parent_id};
 }
 
 
@@ -1080,5 +1098,5 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage, selectTree, imageWithID
+    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage, selectTree, imageWithID, editImage
 };

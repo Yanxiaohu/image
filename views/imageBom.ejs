@@ -29,6 +29,9 @@
             <button class="layui-btn layui-btn-sm" lay-event="add">添加子图</button>
         </div>
         图纸<span style="color: darkred" id="image_name_id"></span>的子图
+        <div class="layui-btn-container layui-inline" style="float: right">
+            <button class="layui-btn layui-btn-sm" lay-event="edit">编辑备注</button>
+        </div>
     </script>
     <table id="demo" lay-filter="test" style="width: 100%"></table>
 </div>
@@ -188,6 +191,14 @@
                     });
                     layui.form.val('addModel', {});
                     break;
+                case 'edit':
+                    layer.open({
+                        title: '添加子图',
+                        type: 1,
+                        content: layui.$('#editModelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                    });
+                    layui.form.val('editModelID', {});
+                    break
             }
         });
     }
@@ -309,6 +320,23 @@
         </div>
     </div>
 </form>
+
+<form class="layui-form" lay-filter="editModel"
+      style="margin-top: 15px;margin-right: 15px;display: none" action=""
+      id="editModelID">
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注信息</label>
+        <div class="layui-input-block">
+            <input type="text" name="note" placeholder="请输入" autocomplete="off" class="layui-input" id="inputid">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block" style="margin-top: 100px">
+            <button class="layui-btn" lay-submit lay-filter="edit_image_submit">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
 <script>
     let $ = layui.$;
     $(function () {
@@ -320,7 +348,7 @@
                 $.ajax({
                     url: '/getImages', //提交接口
                     type: 'get',
-                    data: {token: localStorage.getItem('token'), image_name: image_name,},
+                    data: {token: localStorage.getItem('token'), image_name: image_name, from_factory_id: ''},
                     success: function (res) {
                         if (res.code == 0) {
                             let select = document.getElementById('image_add_id');
@@ -362,6 +390,32 @@
             data: {
                 parent_id: getQueryString('id'),
                 image_id: data.field.id,
+                token: localStorage.getItem('token')
+            },
+            success: function (res) {
+                layer.close(loadStart);
+                if (res.code == 0) {
+                    window.location.reload();
+                } else {
+                    codeMessage(res.code, res.message)
+                }
+            },
+            error: function (mas, textStatus, errorThrown) {
+                layer.close(loadStart);
+                layer.msg('网络错误，请联系管理员');
+            }
+        });
+        return false;
+    });
+
+    layui.form.on('submit(edit_image_submit)', function (data) {
+        const loadStart = layer.load();
+        layui.$.ajax({
+            url: '/editImage', //提交接口
+            type: 'post',
+            data: {
+                id: getQueryString('id'),
+                note: data.field.note,
                 token: localStorage.getItem('token')
             },
             success: function (res) {
