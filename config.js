@@ -828,7 +828,7 @@ const imageWithID = function (req, res) {
             res.send(
                 {
                     code: 0,
-                    note,
+                    note: note == null ? '' : '(' + note + ')',
                     image_name
                 }
             );
@@ -838,13 +838,14 @@ const imageWithID = function (req, res) {
 }
 const editImage = function (req, res) {
     const {id, note, token} = req.body;
-    const work = function () {
+    const work = function (decoded) {
         conn.query('update image_info_list set note=? where id=?', [note, id], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
                 message: '模块成功编辑',
             });
+            addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
         })
     }
     verifyToken(token, req.ip, res, work);
@@ -956,7 +957,7 @@ const selectInfoFromParentID = function (req, res) {
 }
 const addSubImage = function (req, res) {
     const {image_id, parent_id, token} = req.body;
-    const work = function () {
+    const work = function (decoded) {
         conn.query(`SELECT COUNT(*) count
                     FROM image_bom_sub
                     WHERE parent_id = ?
@@ -981,6 +982,7 @@ const addSubImage = function (req, res) {
                         code: 0,
                         message: '操作成功'
                     });
+                    addLogs(decoded.manager_name, decoded.id, '添加', image_id + "=>" + parent_id, '子图');
                 })
             } else {
                 res.send({
@@ -996,7 +998,7 @@ const addSubImage = function (req, res) {
 
 const delSubImage = function (req, res) {
     const {token, parent_id, image_id} = req.body;
-    const work = function () {
+    const work = function (decoded) {
         conn.query(`delete
                     from image_bom_sub
                     where image_id = ?
@@ -1015,6 +1017,7 @@ const delSubImage = function (req, res) {
                                 from image_bom_sub
                                 where image_id = ?`, [parent_id], () => {
                     })
+                    addLogs(decoded.manager_name, decoded.id, '删除', image_id + "=>" + parent_id, '子图');
                 }
             });
         })
