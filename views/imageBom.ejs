@@ -208,7 +208,7 @@
             type: 'get',
             data: {token: localStorage.getItem('token'), id: getQueryString('id')},
             success: function (res) {
-                document.getElementById('image_name_id').innerText = res.image_name + '(' + res.note + ')';
+                document.getElementById('image_name_id').innerText = res.image_name + res.note;
             }
         });
     }

@@ -825,6 +825,8 @@ const imageWithID = function (req, res) {
         conn.query('select image_name,note from image_info_list  where id = ?', [id], (err, result) => {
             if (err) return console.log(err.message)
             const {note, image_name} = result[0];
+            console.log(note == null ? '' : '(' + note + ')')
+            console.log(note == null);
             res.send(
                 {
                     code: 0,
