@@ -247,8 +247,9 @@
                                 }
                             }
 
+                            const note = obj.data.note == null ? '' : '(' + obj.data.note + ')';
                             layer.open({
-                                title: '<span style="color: darkred">' + obj.data.image_name + obj.data.note + '</span>' + '相关树图展示',
+                                title: '<span style="color: darkred">' + obj.data.image_name + note + '</span>' + '相关树图展示',
                                 type: 1,
                                 content: layui.$('#infoMadelTreeID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                             });
