@@ -307,7 +307,7 @@ const uploads = function (req, res) {
             const work = function (decoded) {
                 const image_name = files.file.originalFilename;
                 let oldPath = files.file.newFilename;
-                if (decoded.user_type != 1 && decoded.user_type != 3) {
+                if (decoded.user_type != 1 && decoded.user_type != 3 && decoded.user_type != 4) {
                     res.send({
                         code: 3,
                         message: '您已经没有权限浏览该页面'
@@ -360,63 +360,38 @@ const getImages = function (req, res) {
     const cacheLimit = limit * 1;
     const cache_from_factory_id = from_factory_id * 1;
     const work = function (decoded) {
-        let ImageListSql = `select i.id, i.image_name, i.url, i.up_time, i.manager_name, f.from_factory, i.note
-                            from image_info_list i,
+        let ImageListSql = `SELECT i.id,
+                                   i.image_name,
+                                   i.url,
+                                   i.up_time,
+                                   i.manager_name,
+                                   f.from_factory,
+                                   i.note
+                            FROM image_info_list i
+                                     INNER JOIN
                                  factory_info_list f
-                            where i.from_factory_id = f.id`;
+                                 ON i.from_factory_id = f.id`;
         let imagesCountSql = `select count(*) count
                               from image_info_list`;
         const limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
+        let likeData = '';
         if (editor ) {
-            if (image_name === '') {
-                if ( decoded.user_type == 3) {
-                    ImageListSql = `${ImageListSql}
-                                  and i.from_factory_id = ${decoded.from_factory_id}
-                                ${limit}`
-                    imagesCountSql = `${imagesCountSql}
-                                  where from_factory_id =${decoded.from_factory_id}`
-                } else {
-                    ImageListSql = `${ImageListSql}
-                                ${limit}`
-                    imagesCountSql = `${imagesCountSql}`
-                }
-            } else {
-                if ( decoded.user_type == 3) {
-                    ImageListSql = `${ImageListSql}
-                                  and i.from_factory_id = ${decoded.from_factory_id}
-                                  and image_name like "%${image_name}%"
-                                    ${limit}`;
-                    imagesCountSql = `${imagesCountSql}
-                                  where image_name like "%${image_name}%"`;
-                } else {
-                    ImageListSql = `${ImageListSql}
-                                  and image_name like "%${image_name}%"
-                                    ${limit}`;
-                    imagesCountSql = `${imagesCountSql}
-                                  where image_name like "%${image_name}%"`;
-                }
+            if (image_name == ''){
+                likeData = `where from_factory_id = ${decoded.from_factory_id}`
+            }else {
+                likeData = `where from_factory_id = ${decoded.from_factory_id} and image_name like"%${image_name}%"`
             }
-        } else {
-            if (from_factory_id != '') {
-                if (image_name == '') {
-                    ImageListSql = `${ImageListSql}  and i.from_factory_id = ${cache_from_factory_id} ${limit}`;
-                    imagesCountSql = `${imagesCountSql}  where from_factory_id = ${cache_from_factory_id}`;
-                } else {
-                    ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id}  and image_name like "%${image_name}%" ${limit}`;
-                    imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id} and image_name like "%${image_name}%"`;
-                }
-            }else if (image_name === '') {
-                ImageListSql = `${ImageListSql}
-                                    ${limit}`
-                imagesCountSql = `${imagesCountSql}`
-            } else {
-                ImageListSql = `${ImageListSql}
-                                  and image_name like "%${image_name}%"
-                                    ${limit}`;
-                imagesCountSql = `${imagesCountSql}
-                                  where image_name like "%${image_name}%"`;
-            }
+        }else if(image_name == '' && from_factory_id != ''){
+            likeData = `where from_factory_id = ${cache_from_factory_id}`
+        } else if (image_name != '' && from_factory_id != ''){
+            likeData = `where from_factory_id = ${cache_from_factory_id} and image_name like"%${image_name}%"`
+        } else  if (image_name != '' && from_factory_id == ''){
+            likeData = `where image_name like"%${image_name}%"`
         }
+
+        ImageListSql = `${ImageListSql} ${likeData}  ${limit}`
+        imagesCountSql = `${imagesCountSql} ${likeData}`
+
         conn.query(ImageListSql, (err, results) => {
             if (err) return console.log(err.message)
             conn.query(imagesCountSql, (err, count) => {
@@ -437,6 +412,13 @@ const getImages = function (req, res) {
 const delImage = function (req, res) {
     const {del_id, image_name, token} = req.body;
     const work = function (decoded) {
+        if (decoded.user_type == 4){
+            res.send({
+                code: 3,
+                message: '您没有权限删除改图片，请联系部长删除'
+            });
+            return false;
+        }
         if (decoded.user_type != 1 && decoded.user_type != 3) {
             res.send({
                 code: 3,
@@ -960,9 +942,8 @@ const selectInfoFromParentID = function (req, res) {
                            s.id,
                            s.parent_id,
                            s.image_id,
-                           s.up_time,
+                           DATE_FORMAT(s.up_time,'%Y-%m-%d %H:%i:%s') up_time,
                            l.url,
-                           l.up_time,
                            l.manager_name,
                            f.from_factory
                     FROM image_bom_sub s

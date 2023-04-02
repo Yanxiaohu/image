@@ -81,7 +81,7 @@
                             applyListBadge.innerText = res.un_read_count;
                         }
                         star = 'layui-icon-rate-solid';
-                    } else if (res.user_type === 3) {
+                    } else if (res.user_type === 3 || res.user_type === 4) {
                         document.getElementById('imageManager').style.display = 'inline-block';
                         star = 'layui-icon-rate-half';
                     } else {

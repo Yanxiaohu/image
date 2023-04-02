@@ -65,7 +65,7 @@
                             applyListBadge.innerText = res.un_read_count;
                         }
                         star = 'layui-icon-rate-solid';
-                    } else if (res.user_type === 3) {
+                    } else if (res.user_type === 3 || res.user_type === 4) {
                         document.getElementById('imageManager').style.display = 'inline-block';
                         star = 'layui-icon-rate-half';
                     } else {
@@ -146,7 +146,7 @@
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'image_name', title: '子图名称'}
                 , {field: 'from_factory', title: '所属模块'}
-                , {field: 'up_time', title: '上传时间'}
+                , {field: 'up_time', title: '子图添加时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
@@ -165,22 +165,35 @@
         };
         table.render(renderDir);
         table.on('tool(test)', function (obj) {
-            const {parent_id, image_id, url} = obj.data;
+            const {parent_id, image_id, url,image_name} = obj.data;
             if (obj.event == 'edit') {
                 window.open(url, '_blank');
             } else {
-                const token = localStorage.getItem('token');
-                layui.$.ajax({
-                    url: '/delSubImage', //提交接口
-                    type: 'post',
-                    data: {token: token, parent_id, image_id},
-                    success: function (res) {
-                        window.location.reload();
-                    }
-                });
+                const message = '真的删除子图' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
+                layer.confirm(message, function (index) {
+                    const delLoading = layer.load(1);
+                     layui.$.ajax({
+                     url: '/delSubImage', //提交接口
+                     type: 'post',
+                      data: {token: token, parent_id, image_id},
+                      success: function (res) {
+                       layer.close(delLoading);
+                        layer.close(index);
+                         if (res.code == 0) {
+                              obj.del();
+                         } else {
+                              codeMessage(res.code, res.message)
+                         }
+                      },
+                         error: function (mas, textStatus, errorThrown) {
+                             layer.msg("请求失败");
+                             layer.close(delLoading);
+                             layer.close(index);
+                            }
+                        });
+                      });
             }
         });
-
         table.on('toolbar(test)', function (obj) {
             switch (obj.event) {
                 case 'add':
