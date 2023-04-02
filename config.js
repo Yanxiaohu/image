@@ -185,7 +185,7 @@ const addUser = function (req, res) {
                             code: 0,
                             message: '用户新增成功',
                         });
-                        addLogs(decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户');
+                        addLogs(decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '部长用户');
                     })
                 } else {
                     res.send({
@@ -227,7 +227,7 @@ const editUser = function (req, res) {
                             message: '密码修改成功！',
                         });
                     })
-                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name == null ? '修改自己登陆密码' : manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 2 ? '生产用户' : '用户')
+                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name == null ? '修改自己登陆密码' : manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 2 ? '部长用户' : user_type == 4 ? '部长用户' : '用户')
                 }
             });
         } else if (decoded.user_type != 1) {
@@ -246,7 +246,7 @@ const editUser = function (req, res) {
                             message: '用户已成功编辑',
                         });
                     })
-                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户');
+                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '部长用户');
                 } else {
                     res.send({
                         code: 1,
@@ -285,7 +285,7 @@ const delUser = function (req, res) {
                     code: 0,
                     message: '用户已删除',
                 });
-                addLogs(decoded.manager_name, decoded.id, '删除', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '生产用户');
+                addLogs(decoded.manager_name, decoded.id, '删除', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '部长用户');
             })
         }
     }
@@ -367,32 +367,47 @@ const getImages = function (req, res) {
         let imagesCountSql = `select count(*) count
                               from image_info_list`;
         const limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
-        if (from_factory_id != '' && !editor) {
+        if (editor && decoded.user_type == 3) {
             if (image_name === '') {
-                ImageListSql = `${ImageListSql}  and i.from_factory_id = ${cache_from_factory_id} ${limit}`;
-                imagesCountSql = `${imagesCountSql}  where from_factory_id = ${cache_from_factory_id}`;
-            } else {
-                ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id}  and image_name like "%${image_name}%" ${limit}`;
-                imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id} and image_name like "%${image_name}%"`;
-            }
-        } else if (image_name === '') {
-            if (editor == 'true' && decoded.user_type != 1) {
-                ImageListSql = `${ImageListSql}
+                if (editor == 'true' && decoded.user_type != 1) {
+                    ImageListSql = `${ImageListSql}
                                   and i.from_factory_id = ${decoded.from_factory_id}
                                 ${limit}`
-                imagesCountSql = `${imagesCountSql}
+                    imagesCountSql = `${imagesCountSql}
                                   where from_factory_id =${decoded.from_factory_id}`
+                } else {
+                    ImageListSql = `${ImageListSql}
+                                ${limit}`
+                    imagesCountSql = `${imagesCountSql}`
+                }
             } else {
                 ImageListSql = `${ImageListSql}
-                                ${limit}`
-                imagesCountSql = `${imagesCountSql}`
-            }
-        } else {
-            ImageListSql = `${ImageListSql}
+                                  and i.from_factory_id = ${decoded.from_factory_id}
                                   and image_name like "%${image_name}%"
                                     ${limit}`;
-            imagesCountSql = `${imagesCountSql}
+                imagesCountSql = `${imagesCountSql}
                                   where image_name like "%${image_name}%"`;
+            }
+        } else {
+            if (from_factory_id != '') {
+                if (image_name == '') {
+                    ImageListSql = `${ImageListSql}  and i.from_factory_id = ${cache_from_factory_id} ${limit}`;
+                    imagesCountSql = `${imagesCountSql}  where from_factory_id = ${cache_from_factory_id}`;
+                } else {
+                    ImageListSql = `${ImageListSql}  and i.from_factory_id = ${from_factory_id}  and image_name like "%${image_name}%" ${limit}`;
+                    imagesCountSql = `${imagesCountSql}  where from_factory_id = ${from_factory_id} and image_name like "%${image_name}%"`;
+                }
+            }else if (image_name === '') {
+                ImageListSql = `${ImageListSql}
+                                    ${limit}`
+                imagesCountSql = `${imagesCountSql}`
+            } else {
+                ImageListSql = `${ImageListSql}
+                                  and image_name like "%${image_name}%"
+                                    ${limit}`;
+                imagesCountSql = `${imagesCountSql}
+                                  where image_name like "%${image_name}%"`;
+            }
         }
         conn.query(ImageListSql, (err, results) => {
             if (err) return console.log(err.message)
@@ -1042,8 +1057,7 @@ const selectTree = function (req, res) {
                                               OR image_id = ANY (SELECT parent_id
                                                                  FROM image_bom_sub
                                                                  WHERE parent_id = ?
-                                                                    or image_id = ?)
-                    )
+                                                                    or image_id = ?))
                        OR image_id = ANY (SELECT parent_id
                                           FROM image_bom_sub
                                           WHERE parent_id = ANY (SELECT parent_id

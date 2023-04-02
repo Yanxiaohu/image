@@ -13,7 +13,7 @@
         <li class="layui-nav-item"><a href="/imagesManager">图纸管理</a></li>
         <li class="layui-nav-item layui-this"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item"><a href="/factories">模块管理</a></li>
-        <li class="layui-nav-item"><a href="/workshop">部门管理</a></li>
+        <li class="layui-nav-item"><a href="/workshop">厂区管理</a></li>
         <li class="layui-nav-item"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
@@ -58,8 +58,9 @@
             <select name="user_type" lay-verify="required">
                 <option value=>请选择用户类型</option>
                 <option value=1>超级管理员</option>
-                <option value=3>增删用户</option>
-                <option value=2>查看用户</option>
+                <option value=3>部长用户</option>
+                <option value=4>技术用户</option>
+                <option value=2>普通用户</option>
             </select>
         </div>
     </div>
@@ -195,7 +196,10 @@
                         $(this).text("普通用户")
                     }
                     if ($(this).text() == '3') {
-                        $(this).text("生产用户")
+                        $(this).text("部长用户")
+                    }
+                    if ($(this).text() == '4') {
+                        $(this).text("部长用户")
                     }
                 })
                 $("[data-field='last_login_time']").children().each(function () {

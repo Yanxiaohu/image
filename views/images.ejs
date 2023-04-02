@@ -228,6 +228,7 @@
                         if (res.code == 0) {
                             const ary = res.data;
                             treeData = getTrees('', ary);
+                            console.log(treeData);
                             treeRender(treeData);
 
                             function getTrees(pid = '') {
