@@ -738,7 +738,7 @@ const editWorkshop = function (req, res) {
         } else {
             conn.query('select * from workshop_info_list where workshop = ? and id != ? and from_factory_id = ? ', [workshop, editID, from_factory_id], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('update workshop_info_list set workshop=? where id=?', [workshop, editID], (err, results) => {
+                    conn.query('update workshop_info_list set workshop=? , from_factory_id = ? where id=?', [workshop,from_factory_id, editID], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
