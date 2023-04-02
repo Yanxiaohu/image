@@ -367,9 +367,9 @@ const getImages = function (req, res) {
         let imagesCountSql = `select count(*) count
                               from image_info_list`;
         const limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
-        if (editor && decoded.user_type == 3) {
+        if (editor ) {
             if (image_name === '') {
-                if (editor == 'true' && decoded.user_type != 1) {
+                if ( decoded.user_type == 3) {
                     ImageListSql = `${ImageListSql}
                                   and i.from_factory_id = ${decoded.from_factory_id}
                                 ${limit}`
@@ -381,12 +381,20 @@ const getImages = function (req, res) {
                     imagesCountSql = `${imagesCountSql}`
                 }
             } else {
-                ImageListSql = `${ImageListSql}
+                if ( decoded.user_type == 3) {
+                    ImageListSql = `${ImageListSql}
                                   and i.from_factory_id = ${decoded.from_factory_id}
                                   and image_name like "%${image_name}%"
                                     ${limit}`;
-                imagesCountSql = `${imagesCountSql}
+                    imagesCountSql = `${imagesCountSql}
                                   where image_name like "%${image_name}%"`;
+                } else {
+                    ImageListSql = `${ImageListSql}
+                                  and image_name like "%${image_name}%"
+                                    ${limit}`;
+                    imagesCountSql = `${imagesCountSql}
+                                  where image_name like "%${image_name}%"`;
+                }
             }
         } else {
             if (from_factory_id != '') {
