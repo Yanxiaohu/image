@@ -988,7 +988,7 @@ const addSubImage = function (req, res) {
                     WHERE parent_id = ?
                       AND image_id = ?`, [parent_id, image_id], (err, results) => {
             if (err) return console.log(err.message)
-            if (results[0].count == 0) {
+            if (results[0].count == 0 && parent_id != image_id) {
                 conn.query(`SELECT COUNT(*) count
                             FROM image_bom_sub
                             WHERE image_id = ?`, [parent_id], (err, parent) => {
