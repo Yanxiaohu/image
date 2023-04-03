@@ -165,7 +165,7 @@
             const {event} = obj;
             if (event == 'del') {
                 if (user_type == 1 || user_type == 3){
-                    const message = '真的删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '吗？';
+                    const message = '真的删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '吗？ <p style="font-size: 12px;color: gray;"> (删除后作为子图会对应被移除)</p>';
                     layer.confirm(message, function (index) {
                         const delLoading = layer.load(1);
                         layui.$.ajax({
@@ -200,6 +200,9 @@
                                 layer.close(delLoading);
                                 layer.close(index);
                                 if (res.code == 0) {
+                                    layer.msg(JSON.stringify(res.message), {icon: 1},function (){
+                                        window.location.reload();
+                                    });
                                 } else {
                                     codeMessage(res.code, res.message)
                                 }
