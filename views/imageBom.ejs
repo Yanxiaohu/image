@@ -29,7 +29,7 @@
         <div class="layui-btn-container layui-inline">
             <button class="layui-btn layui-btn-sm" lay-event="add">添加子图</button>
         </div>
-        图纸<span style="color: darkred" id="image_name_id"></span>的子图
+        图纸<span style="color: darkred;font-size: 18px" id="image_name_id"></span>的子图
         <div class="layui-btn-container layui-inline" style="float: right">
             <button class="layui-btn layui-btn-sm" lay-event="edit">编辑</button>
         </div>
@@ -38,7 +38,7 @@
 </div>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">移除</a>
 </script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
@@ -150,6 +150,7 @@
                 , {field: 'image_name', title: '子图名称'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '子图添加时间'}
+                , {field: 'do_thing', title: '子图添加时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
@@ -199,26 +200,28 @@
                 } else {
                     const message = '提交移除子图' + '<label style="color: darkred">' + image_name + '</label>' + '申请';
                     layer.confirm(message, function (index) {
-                        // const delLoading = layer.load(1);
-                        // layui.$.ajax({
-                        //     url: '/delSubImage', //提交接口
-                        //     type: 'post',
-                        //     data: {parent_id, image_id, token: localStorage.getItem('token')},
-                        //     success: function (res) {
-                        //         layer.close(delLoading);
-                        //         layer.close(index);
-                        //         if (res.code == 0) {
-                        //             obj.del();
-                        //         } else {
-                        //             codeMessage(res.code, res.message)
-                        //         }
-                        //     },
-                        //     error: function (mas, textStatus, errorThrown) {
-                        //         layer.msg("请求失败");
-                        //         layer.close(delLoading);
-                        //         layer.close(index);
-                        //     }
-                        // });
+                        const delLoading = layer.load(1);
+                        layui.$.ajax({
+                            url: '/delSubImageApply', //提交接口
+                            type: 'post',
+                            data: {parent_id, image_id, image_name, token: localStorage.getItem('token')},
+                            success: function (res) {
+                                layer.close(delLoading);
+                                layer.close(index);
+                                if (res.code == 0) {
+                                    layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
+                                        tableRender();
+                                    });
+                                } else {
+                                    codeMessage(res.code, res.message)
+                                }
+                            },
+                            error: function (mas, textStatus, errorThrown) {
+                                layer.msg("请求失败");
+                                layer.close(delLoading);
+                                layer.close(index);
+                            }
+                        });
                     });
                 }
             }
@@ -239,7 +242,7 @@
                         type: 1,
                         content: layui.$('#editModelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                     });
-                    layui.form.val('editModel', {note,open:null});
+                    layui.form.val('editModel', {note, open: null});
                     break
             }
         });
@@ -251,10 +254,10 @@
             data: {token: localStorage.getItem('token'), id: getQueryString('id')},
             success: function (res) {
                 let str = res.note;
-                if (!res.note){
+                if (!res.note) {
                     str = ''
-                }else {
-                    str = '('+res.note+')';
+                } else {
+                    str = '(' + res.note + ')';
                 }
                 document.getElementById('image_name_id').innerText = res.image_name + str;
                 note = res.note;
@@ -470,7 +473,7 @@
             data: {
                 id: getQueryString('id'),
                 note: data.field.note,
-                open:data.field.open,
+                open: data.field.open,
                 token: localStorage.getItem('token')
             },
             success: function (res) {

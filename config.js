@@ -367,7 +367,8 @@ const getImages = function (req, res) {
                                    i.manager_name,
                                    f.from_factory,
                                    i.note,
-                                   i.do_thing
+                                   i.do_thing,
+                                   (SELECT COUNT(*) FROM image_bom_sub WHERE parent_id = i.id) sub_count
                             FROM image_info_list i
                                      INNER JOIN
                                  factory_info_list f
@@ -956,6 +957,7 @@ const selectInfoFromParentID = function (req, res) {
                            s.parent_id,
                            s.image_id,
                            DATE_FORMAT(s.up_time,'%Y-%m-%d %H:%i:%s') up_time,
+                           s.do_thing,
                            l.url,
                            l.manager_name,
                            f.from_factory
@@ -1039,6 +1041,25 @@ const delSubImage = function (req, res) {
                     addLogs(decoded.manager_name, decoded.id, '删除', image_id + "=>" + parent_id, '子图');
                 }
             });
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
+const delSubImageApply = function (req, res) {
+    const {token, parent_id, image_id,image_name} = req.body;
+    const work = function (decoded) {
+        conn.query(`update image_bom_sub
+                    set do_thing = ?
+                    where image_id = ?
+                      and parent_id = ?
+                      `, [decoded.manager_name + ' 移除此图申请',image_id, parent_id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                message: '申请已成功提交',
+            });
+            addLogs(decoded.manager_name, decoded.id, '申请移除', parent_id + "=>" + image_name, '子图');
         })
     }
     verifyToken(token, req.ip, res, work);
@@ -1135,5 +1156,5 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage,delImageApply, selectTree, imageWithID, editImage
+    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage,delSubImageApply,delImageApply, selectTree, imageWithID, editImage
 };

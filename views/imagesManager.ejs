@@ -46,6 +46,13 @@
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="tree">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
+<script type="text/html" id="imageNameId">
+    {{# if(d.sub_count > 0){ }}
+    <span style="color: darkred;font-size: 16px">{{d.image_name}}</span>
+    {{# }else{ }}
+    {{d.image_name}}
+    {{# } }}
+</script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
@@ -136,11 +143,12 @@
             , where: {image_name: image_name, editor: true, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图纸编号'}
+                , {field: 'image_name', title: '图纸编号',toolbar: '#imageNameId'}
                 , {field: 'note', title: '备注'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'do_thing', title: '操作申请'}
+                , {field: 'sub_count', title: '子图量', width: 80}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 180, align: 'center', toolbar: '#barDemo'}
             ]]
