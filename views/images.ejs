@@ -36,6 +36,9 @@
                        autocomplete="off" class="layui-input">
             </div>
             <div class="layui-input-inline">
+                <input type="checkbox" name="isBom" title="只显示BOM">
+            </div>
+            <div class="layui-input-inline">
                 <button class="layui-btn" lay-submit lay-filter="formDemo">搜索</button>
                 <button type="reset" class="layui-btn layui-btn-primary">重置</button>
             </div>
@@ -187,15 +190,15 @@
     let treeData = [];
     const tableRender = function () {
         const table = layui.table;
-        const {image_name, from_factory_id} = layui.form.val('image_name_filter');
+        const {image_name, from_factory_id,isBom} = layui.form.val('image_name_filter');
         const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name: image_name, from_factory_id: from_factory_id, token: localStorage.getItem('token')}
+            , where: {image_name: image_name, from_factory_id: from_factory_id,isBom, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图纸编号',toolbar: '#imageNameId'}
+                , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId'}
                 , {field: 'note', title: '备注'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}

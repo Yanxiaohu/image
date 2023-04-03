@@ -355,7 +355,7 @@ const uploads = function (req, res) {
     )
 }
 const getImages = function (req, res) {
-    const {page = 1, limit = 10, image_name, token, from_factory_id, editor} = req.query;
+    const {page = 1, limit = 10, image_name, token, from_factory_id, editor, isBom} = req.query;
     const cachePage = (page - 1) * limit;
     const cacheLimit = limit * 1;
     const cache_from_factory_id = from_factory_id * 1;
@@ -380,23 +380,28 @@ const getImages = function (req, res) {
                               ON i.from_factory_id = f.id`;
         const limit = `order by do_thing desc, id desc limit ${cachePage}, ${cacheLimit}`;
         let likeData = '';
-        if (editor ) {
-            if (image_name == ''){
+        let bomStr = isBom == 'on' ? 'where i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
+        if (editor) {
+            if (image_name == '') {
                 likeData = `where from_factory_id = ${decoded.from_factory_id}`
-            }else {
+            } else {
                 likeData = `where from_factory_id = ${decoded.from_factory_id} and image_name like"%${image_name}%"`
             }
-        }else if(image_name == '' && from_factory_id != ''){
+            bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
+        } else if (image_name == '' && from_factory_id != '') {
             likeData = `where from_factory_id = ${cache_from_factory_id}`
-        } else if (image_name != '' && from_factory_id != ''){
+            bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
+        } else if (image_name != '' && from_factory_id != '') {
             likeData = `where from_factory_id = ${cache_from_factory_id} and image_name like"%${image_name}%"`
-        } else  if (image_name != '' && from_factory_id == ''){
+            bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
+        } else if (image_name != '' && from_factory_id == '') {
             likeData = `where image_name like"%${image_name}%"`
+            bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
         }
 
-        ImageListSql = `${ImageListSql} ${likeData}  ${limit}`
-        imagesCountSql = `${imagesCountSql} ${likeData}`
-
+        ImageListSql = `${ImageListSql} ${likeData} ${bomStr} ${limit}`
+        imagesCountSql = `${imagesCountSql} ${bomStr} ${likeData}`
+        console.log(ImageListSql);
         conn.query(ImageListSql, (err, results) => {
             if (err) return console.log(err.message)
             conn.query(imagesCountSql, (err, count) => {
@@ -417,7 +422,7 @@ const getImages = function (req, res) {
 const delImage = function (req, res) {
     const {del_id, image_name, token} = req.body;
     const work = function (decoded) {
-        if (decoded.user_type == 4){
+        if (decoded.user_type == 4) {
             res.send({
                 code: 3,
                 message: '您没有权限删除改图片，请联系部长删除'
@@ -725,7 +730,7 @@ const editWorkshop = function (req, res) {
         } else {
             conn.query('select * from workshop_info_list where workshop = ? and id != ? and from_factory_id = ? ', [workshop, editID, from_factory_id], (err, results) => {
                 if (results.length == 0) {
-                    conn.query('update workshop_info_list set workshop=? , from_factory_id = ? where id=?', [workshop,from_factory_id, editID], (err, results) => {
+                    conn.query('update workshop_info_list set workshop=? , from_factory_id = ? where id=?', [workshop, from_factory_id, editID], (err, results) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -847,9 +852,9 @@ const imageWithID = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const editImage = function (req, res) {
-    const {id, note, open,token} = req.body;
+    const {id, note, open, token} = req.body;
     const work = function (decoded) {
-        if (open != 'on'){
+        if (open != 'on') {
             conn.query('update image_info_list set note=? where id=?', [note, id], (err, results) => {
                 if (err) return console.log(err.message)
                 res.send({
@@ -858,8 +863,8 @@ const editImage = function (req, res) {
                 });
                 addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
             })
-        }else {
-            conn.query('update image_info_list set note=?, do_thing=? where id=?', [note,'' ,id], (err, results) => {
+        } else {
+            conn.query('update image_info_list set note=?, do_thing=? where id=?', [note, '', id], (err, results) => {
                 if (err) return console.log(err.message)
                 res.send({
                     code: 0,
@@ -956,7 +961,7 @@ const selectInfoFromParentID = function (req, res) {
                            s.id,
                            s.parent_id,
                            s.image_id,
-                           DATE_FORMAT(s.up_time,'%Y-%m-%d %H:%i:%s') up_time,
+                           DATE_FORMAT(s.up_time, '%Y-%m-%d %H:%i:%s') up_time,
                            s.do_thing,
                            l.url,
                            l.manager_name,
@@ -1047,13 +1052,13 @@ const delSubImage = function (req, res) {
 }
 
 const delSubImageApply = function (req, res) {
-    const {token, parent_id, image_id,image_name} = req.body;
+    const {token, parent_id, image_id, image_name} = req.body;
     const work = function (decoded) {
         conn.query(`update image_bom_sub
                     set do_thing = ?
                     where image_id = ?
                       and parent_id = ?
-                      `, [decoded.manager_name + ' 移除此图申请',image_id, parent_id], (err, results) => {
+        `, [decoded.manager_name + ' 移除此图申请', image_id, parent_id], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
@@ -1068,7 +1073,7 @@ const delSubImageApply = function (req, res) {
 const delImageApply = function (req, res) {
     const {del_id, image_name, token} = req.body;
     const work = function (decoded) {
-        const do_thing = decoded.manager_name+'申请删除';
+        const do_thing = decoded.manager_name + '申请删除';
         conn.query('update image_info_list set do_thing=? where id=?', [do_thing, del_id], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
@@ -1156,5 +1161,15 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage,delSubImageApply,delImageApply, selectTree, imageWithID, editImage
+    apply,
+    getApply,
+    editApply,
+    selectInfoFromParentID,
+    addSubImage,
+    delSubImage,
+    delSubImageApply,
+    delImageApply,
+    selectTree,
+    imageWithID,
+    editImage
 };
