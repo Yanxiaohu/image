@@ -49,6 +49,7 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
+    let  user_type = 1;
     layui.$.ajaxSetup({cache: false})
     layui.use('form', function () {
         const form = layui.form;
@@ -68,8 +69,9 @@
             success: function (res) {
                 layer.close(loadStart);
                 if (res.code != 0) {
-                    codeMessage(code, message)
+                    codeMessage(res.code, res.message)
                 } else {
+                    user_type = res.user_type;
                     if (res.user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
                     if (res.user_type === 1) {
@@ -138,6 +140,7 @@
                 , {field: 'note', title: '备注'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
+                , {field: 'do_thing', title: '操作申请'}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 180, align: 'center', toolbar: '#barDemo'}
             ]]
@@ -161,29 +164,55 @@
             const data = obj.data
             const {event} = obj;
             if (event == 'del') {
-                const message = '真的删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '吗？';
-                layer.confirm(message, function (index) {
-                    const delLoading = layer.load(1);
-                    layui.$.ajax({
-                        url: '/delImage', //提交接口
-                        type: 'post',
-                        data: {del_id: data.id, image_name: data.image_name, token: localStorage.getItem('token')},
-                        success: function (res) {
-                            layer.close(delLoading);
-                            layer.close(index);
-                            if (res.code == 0) {
-                                obj.del();
-                            } else {
-                                codeMessage(res.code, res.message)
+                if (user_type == 1 || user_type == 3){
+                    const message = '真的删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '吗？';
+                    layer.confirm(message, function (index) {
+                        const delLoading = layer.load(1);
+                        layui.$.ajax({
+                            url: '/delImage', //提交接口
+                            type: 'post',
+                            data: {del_id: data.id, image_name: data.image_name, token: localStorage.getItem('token')},
+                            success: function (res) {
+                                layer.close(delLoading);
+                                layer.close(index);
+                                if (res.code == 0) {
+                                    obj.del();
+                                } else {
+                                    codeMessage(res.code, res.message)
+                                }
+                            },
+                            error: function (mas, textStatus, errorThrown) {
+                                layer.msg("请求失败");
+                                layer.close(delLoading);
+                                layer.close(index);
                             }
-                        },
-                        error: function (mas, textStatus, errorThrown) {
-                            layer.msg("请求失败");
-                            layer.close(delLoading);
-                            layer.close(index);
-                        }
+                        });
                     });
-                });
+                }else {
+                    const message = '提出删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '申请';
+                    layer.confirm(message, function (index) {
+                        const delLoading = layer.load(1);
+                        layui.$.ajax({
+                            url: '/delImageApply', //提交接口
+                            type: 'post',
+                            data: {del_id: data.id, image_name: data.image_name, token: localStorage.getItem('token')},
+                            success: function (res) {
+                                layer.close(delLoading);
+                                layer.close(index);
+                                if (res.code == 0) {
+                                } else {
+                                    codeMessage(res.code, res.message)
+                                }
+                            },
+                            error: function (mas, textStatus, errorThrown) {
+                                layer.msg("请求失败");
+                                layer.close(delLoading);
+                                layer.close(index);
+                            }
+                        });
+                    });
+                }
+
             } else if (event == 'edit') {
                 window.open(data.url, '_blank');
             } else {

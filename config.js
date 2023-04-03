@@ -366,14 +366,18 @@ const getImages = function (req, res) {
                                    i.up_time,
                                    i.manager_name,
                                    f.from_factory,
-                                   i.note
+                                   i.note,
+                                   i.do_thing
                             FROM image_info_list i
                                      INNER JOIN
                                  factory_info_list f
                                  ON i.from_factory_id = f.id`;
-        let imagesCountSql = `select count(*) count
-                              from image_info_list`;
-        const limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
+        let imagesCountSql = `SELECT count(*) count
+                              FROM
+                                  image_info_list i
+                                  INNER JOIN factory_info_list f
+                              ON i.from_factory_id = f.id`;
+        const limit = `order by do_thing desc, id desc limit ${cachePage}, ${cacheLimit}`;
         let likeData = '';
         if (editor ) {
             if (image_name == ''){
@@ -1031,6 +1035,22 @@ const delSubImage = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 
+const delImageApply = function (req, res) {
+    const {del_id, image_name, token} = req.body;
+    const work = function (decoded) {
+        const do_thing = decoded.manager_name+'申请删除';
+        conn.query('update image_info_list set do_thing=? where id=?', [do_thing, del_id], (err, results) => {
+            if (err) return console.log(err.message)
+            res.send({
+                code: 0,
+                message: '申请已提交',
+            });
+            addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
+        })
+    }
+    verifyToken(token, req.ip, res, work);
+}
+
 const selectTree = function (req, res) {
     const {image_id, token} = req.query;
     const work = function () {
@@ -1106,5 +1126,5 @@ module.exports = {
     delWorkshop,
     fileRead,
     imageRead,
-    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage, selectTree, imageWithID, editImage
+    apply, getApply, editApply, selectInfoFromParentID, addSubImage, delSubImage,delImageApply, selectTree, imageWithID, editImage
 };

@@ -10,7 +10,8 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item "><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item layui-this" id="imageManager" style="display: none"><a href="/imagesManager">图纸管理</a>
+        <li class="layui-nav-item layui-this" id="imageManager" style="display: none"><a
+                    href="/imagesManager">图纸管理</a>
         </li>
         <li class="layui-nav-item " id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item " id="actionsLogs" style="display: none"><a href="/actionsLogs">操作日志</a></li>
@@ -42,6 +43,7 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
+    let user_type = 1;
     layui.$.ajaxSetup({cache: false})
     layui.use(function () {
         const layer = layui.layer;
@@ -54,6 +56,7 @@
                 layer.close(loadStart);
                 if (res.code == 0) {
                     let star = '';
+                    user_type = res.user_type;
                     if (res.user_type === 1) {
                         document.getElementById('imageManager').style.display = 'inline-block';
                         document.getElementById('userManager').style.display = 'inline-block';
@@ -165,33 +168,59 @@
         };
         table.render(renderDir);
         table.on('tool(test)', function (obj) {
-            const {parent_id, image_id, url,image_name} = obj.data;
+            const {parent_id, image_id, url, image_name} = obj.data;
             if (obj.event == 'edit') {
                 window.open(url, '_blank');
             } else {
-                const message = '真的删除子图' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
-                layer.confirm(message, function (index) {
-                    const delLoading = layer.load(1);
-                     layui.$.ajax({
-                     url: '/delSubImage', //提交接口
-                     type: 'post',
-                      data: {token: token, parent_id, image_id},
-                      success: function (res) {
-                       layer.close(delLoading);
-                        layer.close(index);
-                         if (res.code == 0) {
-                              obj.del();
-                         } else {
-                              codeMessage(res.code, res.message)
-                         }
-                      },
-                         error: function (mas, textStatus, errorThrown) {
-                             layer.msg("请求失败");
-                             layer.close(delLoading);
-                             layer.close(index);
+                if (user_type == 1 || user_type == 3) {
+                    const message = '真的要移除子图' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
+                    layer.confirm(message, function (index) {
+                        const delLoading = layer.load(1);
+                        layui.$.ajax({
+                            url: '/delSubImage', //提交接口
+                            type: 'post',
+                            data: {parent_id, image_id, token: localStorage.getItem('token')},
+                            success: function (res) {
+                                layer.close(delLoading);
+                                layer.close(index);
+                                if (res.code == 0) {
+                                    obj.del();
+                                } else {
+                                    codeMessage(res.code, res.message)
+                                }
+                            },
+                            error: function (mas, textStatus, errorThrown) {
+                                layer.msg("请求失败");
+                                layer.close(delLoading);
+                                layer.close(index);
                             }
                         });
-                      });
+                    });
+                } else {
+                    const message = '提交移除子图' + '<label style="color: darkred">' + image_name + '</label>' + '申请';
+                    layer.confirm(message, function (index) {
+                        // const delLoading = layer.load(1);
+                        // layui.$.ajax({
+                        //     url: '/delSubImage', //提交接口
+                        //     type: 'post',
+                        //     data: {parent_id, image_id, token: localStorage.getItem('token')},
+                        //     success: function (res) {
+                        //         layer.close(delLoading);
+                        //         layer.close(index);
+                        //         if (res.code == 0) {
+                        //             obj.del();
+                        //         } else {
+                        //             codeMessage(res.code, res.message)
+                        //         }
+                        //     },
+                        //     error: function (mas, textStatus, errorThrown) {
+                        //         layer.msg("请求失败");
+                        //         layer.close(delLoading);
+                        //         layer.close(index);
+                        //     }
+                        // });
+                    });
+                }
             }
         });
         table.on('toolbar(test)', function (obj) {
