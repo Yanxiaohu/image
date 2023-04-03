@@ -31,7 +31,7 @@
         </div>
         图纸<span style="color: darkred" id="image_name_id"></span>的子图
         <div class="layui-btn-container layui-inline" style="float: right">
-            <button class="layui-btn layui-btn-sm" lay-event="edit">编辑备注</button>
+            <button class="layui-btn layui-btn-sm" lay-event="edit">编辑</button>
         </div>
     </script>
     <table id="demo" lay-filter="test" style="width: 100%"></table>
@@ -43,7 +43,7 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
-    let user_type = 1;
+    let user_type = 1, note = '';
     layui.$.ajaxSetup({cache: false})
     layui.use(function () {
         const layer = layui.layer;
@@ -239,7 +239,7 @@
                         type: 1,
                         content: layui.$('#editModelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                     });
-                    layui.form.val('editModelID', {});
+                    layui.form.val('editModel', {note,open:null});
                     break
             }
         });
@@ -250,7 +250,14 @@
             type: 'get',
             data: {token: localStorage.getItem('token'), id: getQueryString('id')},
             success: function (res) {
-                document.getElementById('image_name_id').innerText = res.image_name + res.note;
+                let str = res.note;
+                if (!res.note){
+                    str = ''
+                }else {
+                    str = '('+res.note+')';
+                }
+                document.getElementById('image_name_id').innerText = res.image_name + str;
+                note = res.note;
             }
         });
     }
@@ -371,6 +378,10 @@
         <div class="layui-input-block">
             <input type="text" name="note" placeholder="请输入" autocomplete="off" class="layui-input" id="inputid">
         </div>
+        <label class="layui-form-label">清除申请</label>
+        <div class="layui-input-block">
+            <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
+        </div>
     </div>
     <div class="layui-form-item">
         <div class="layui-input-block" style="margin-top: 100px">
@@ -451,6 +462,7 @@
     });
 
     layui.form.on('submit(edit_image_submit)', function (data) {
+        console.log(data);
         const loadStart = layer.load();
         layui.$.ajax({
             url: '/editImage', //提交接口
@@ -458,6 +470,7 @@
             data: {
                 id: getQueryString('id'),
                 note: data.field.note,
+                open:data.field.open,
                 token: localStorage.getItem('token')
             },
             success: function (res) {

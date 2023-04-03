@@ -834,12 +834,10 @@ const imageWithID = function (req, res) {
         conn.query('select image_name,note from image_info_list  where id = ?', [id], (err, result) => {
             if (err) return console.log(err.message)
             const {note, image_name} = result[0];
-            console.log(note == null ? '' : '(' + note + ')')
-            console.log(note == null);
             res.send(
                 {
                     code: 0,
-                    note: note == null ? '' : '(' + note + ')',
+                    note: note,
                     image_name
                 }
             );
@@ -848,16 +846,27 @@ const imageWithID = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const editImage = function (req, res) {
-    const {id, note, token} = req.body;
+    const {id, note, open,token} = req.body;
     const work = function (decoded) {
-        conn.query('update image_info_list set note=? where id=?', [note, id], (err, results) => {
-            if (err) return console.log(err.message)
-            res.send({
-                code: 0,
-                message: '模块成功编辑',
-            });
-            addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
-        })
+        if (open != 'on'){
+            conn.query('update image_info_list set note=? where id=?', [note, id], (err, results) => {
+                if (err) return console.log(err.message)
+                res.send({
+                    code: 0,
+                    message: '图片编辑成功',
+                });
+                addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
+            })
+        }else {
+            conn.query('update image_info_list set note=?, do_thing=? where id=?', [note,'' ,id], (err, results) => {
+                if (err) return console.log(err.message)
+                res.send({
+                    code: 0,
+                    message: '删除已撤销',
+                });
+                addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
+            })
+        }
     }
     verifyToken(token, req.ip, res, work);
 }
