@@ -465,7 +465,6 @@
     });
 
     layui.form.on('submit(edit_image_submit)', function (data) {
-        console.log(data);
         const loadStart = layer.load();
         layui.$.ajax({
             url: '/editImage', //提交接口

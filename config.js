@@ -185,7 +185,8 @@ const addUser = function (req, res) {
                             code: 0,
                             message: '用户新增成功',
                         });
-                        addLogs(decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '部长用户');
+                        // 已该
+                        addLogs(decoded.manager_name, decoded.id, '增加', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 3 ? '部长用户' : user_type == 4 ? '技术用户' : 'error');
                     })
                 } else {
                     res.send({
@@ -227,7 +228,7 @@ const editUser = function (req, res) {
                             message: '密码修改成功！',
                         });
                     })
-                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name == null ? '修改自己登陆密码' : manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : user_type == 2 ? '部长用户' : user_type == 4 ? '部长用户' : '用户')
+                    addLogs(decoded.manager_name, decoded.id, '编辑', '密码','用户')
                 }
             });
         } else if (decoded.user_type != 1) {
@@ -246,7 +247,7 @@ const editUser = function (req, res) {
                             message: '用户已成功编辑',
                         });
                     })
-                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '部长用户');
+                    addLogs(decoded.manager_name, decoded.id, '编辑', manager_name, '用户');
                 } else {
                     res.send({
                         code: 1,
@@ -285,7 +286,7 @@ const delUser = function (req, res) {
                     code: 0,
                     message: '用户已删除',
                 });
-                addLogs(decoded.manager_name, decoded.id, '删除', manager_name, user_type == 1 ? '超级用户' : user_type == 2 ? '普通用户' : '部长用户');
+                addLogs(decoded.manager_name, decoded.id, '删除', manager_name, '用户');
             })
         }
     }
@@ -870,7 +871,7 @@ const editImage = function (req, res) {
                     code: 0,
                     message: '删除已撤销',
                 });
-                addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
+                addLogs(decoded.manager_name, decoded.id, '撤销删除', id, '图纸');
             })
         }
     }
