@@ -190,22 +190,32 @@
     let treeData = [];
     const tableRender = function () {
         const table = layui.table;
-        const {image_name, from_factory_id,isBom} = layui.form.val('image_name_filter');
+        const {image_name, from_factory_id, isBom} = layui.form.val('image_name_filter');
         const renderDir = {
             elem: '#demo'
-            , url: '/getImages' //数据接口
-            , page: true //开启分页
-            , where: {image_name: image_name, from_factory_id: from_factory_id,isBom, token: localStorage.getItem('token')}
-            , cols: [[ //表头
+            ,
+            url: '/getImages' //数据接口
+            ,
+            page: true //开启分页
+            ,
+            where: {
+                image_name: image_name,
+                from_factory_id: from_factory_id,
+                isBom,
+                token: localStorage.getItem('token')
+            }
+            ,
+            cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId'}
-                , {field: 'note', title: '备注',style:'color: darkmagenta;font-weight: 600;'}
+                , {field: 'note', title: '备注', style: 'color: darkmagenta;font-weight: 600;'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
             ]]
-            , done: function (res, page, count) {
+            ,
+            done: function (res, page, count) {
                 if (res.code == 0) {
                     const $ = layui.$;
                     $("[data-field='up_time']").children().each(function () {
@@ -258,7 +268,7 @@
                                 }
                             }
 
-                            const note = obj.data.note == null ? '' : '(' + obj.data.note + ')';
+                            const note = !obj.data.note ? '' : '(' + obj.data.note + ')';
                             layer.open({
                                 title: '<span style="color: darkred">' + obj.data.image_name + note + '</span>' + '相关树图展示',
                                 type: 1,
