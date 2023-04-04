@@ -34,5 +34,9 @@ layui.define(function (exports) { //提示：模块也可以依赖其它模块�
         localStorage.setItem('token', '');
         window.location.href = '/';
     }
-    exports('viewTool', codeMessage, clearUserInfo);
+    const  goBack = function (){
+        history.go(-1);
+    }
+
+    exports('viewTool', codeMessage, clearUserInfo,goBack);
 });

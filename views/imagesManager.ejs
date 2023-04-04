@@ -56,10 +56,16 @@
     {{d.image_name}}
     {{# } }}
 </script>
+<script type="text/html" id="doThing">
+    {{# if(d.do_thing){ }}
+    {{ d.do_thing }} <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit1">撤销</a>
+    {{# }else{ }}
+    {{# } }}
+</script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
-    let  user_type = 1;
+    let user_type = 1, user_id, manager_name;
     layui.$.ajaxSetup({cache: false})
     layui.use('form', function () {
         const form = layui.form;
@@ -82,6 +88,8 @@
                     codeMessage(res.code, res.message)
                 } else {
                     user_type = res.user_type;
+                    user_id = res.user_id;
+                    manager_name = res.manager_name;
                     if (res.user_type == 2) window.location.href = '/imagesShow';
                     let star = 'layui-icon-rate-half';
                     if (res.user_type === 1) {
@@ -138,19 +146,19 @@
     });
     const tableRender = function () {
         const table = layui.table;
-        const {image_name,isBom} = layui.form.val('image_name_filter');
+        const {image_name, isBom} = layui.form.val('image_name_filter');
         const renderDir = {
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name: image_name,isBom, editor: true, token: localStorage.getItem('token')}
+            , where: {image_name: image_name, isBom, editor: true, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图纸编号',toolbar: '#imageNameId'}
-                , {field: 'note', title: '备注',style:'color: darkmagenta;font-weight: 600;'}
+                , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId'}
+                , {field: 'note', title: '备注', style: 'color: darkmagenta;font-weight: 600;'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '上传时间'}
-                , {field: 'do_thing', title: '操作申请'}
+                , {field: 'do_thing', title: '操作申请', toolbar: '#doThing'}
                 , {field: 'sub_count', title: '子图量', width: 80}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 180, align: 'center', toolbar: '#barDemo'}
@@ -175,7 +183,7 @@
             const data = obj.data
             const {event} = obj;
             if (event == 'del') {
-                if (user_type == 1 || user_type == 3){
+                if (user_type == 1 || user_type == 3) {
                     const message = '真的删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '吗？ <p style="font-size: 12px;color: gray;"> (删除后作为子图会对应被移除)</p>';
                     layer.confirm(message, function (index) {
                         const delLoading = layer.load(1);
@@ -199,7 +207,7 @@
                             }
                         });
                     });
-                }else {
+                } else {
                     const message = '提出删除图纸' + '<label style="color: darkred">' + data.image_name + '</label>' + '申请';
                     layer.confirm(message, function (index) {
                         const delLoading = layer.load(1);
@@ -211,7 +219,7 @@
                                 layer.close(delLoading);
                                 layer.close(index);
                                 if (res.code == 0) {
-                                    layer.msg(JSON.stringify(res.message), {icon: 1},function (){
+                                    layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
                                         window.location.reload();
                                     });
                                 } else {
@@ -229,6 +237,38 @@
 
             } else if (event == 'edit') {
                 window.open(data.url, '_blank');
+            } else if (event == 'edit1') {
+                const {do_thing, note, id} = obj.data;
+                if (user_type == 1 || user_type == 3 || do_thing.indexOf(manager_name) != -1) {
+                    const loadStart = layer.load();
+                    layui.$.ajax({
+                        url: '/editImage', //提交接口
+                        type: 'post',
+                        data: {
+                            id,
+                            note,
+                            open: 'on',
+                            token: localStorage.getItem('token')
+                        },
+                        success: function (res) {
+                            layer.close(loadStart);
+                            if (res.code == 0) {
+                                layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
+                                    tableRender();
+                                });
+                            } else {
+                                codeMessage(res.code, res.message)
+                            }
+                        },
+                        error: function (mas, textStatus, errorThrown) {
+                            layer.close(loadStart);
+                            layer.msg('网络错误，请联系管理员');
+                        }
+                    });
+
+                } else {
+                    layer.msg(JSON.stringify('你没有权限撤销，请联系部长/管理员'), {icon: 1});
+                }
             } else {
                 const url = '/imageBom?id=' + data.id;
                 window.location.href = url;

@@ -52,11 +52,11 @@ const login = function (body, ip, res) {
 const isLogin = function (body, ip, res) {
     const {token} = body;
     const work = function (decoded) {
-        conn.query('select manager_name,user_type,from_factory_id from user_info_list where  id =?', [decoded.id], (err, results) => {
+        conn.query('select manager_name,user_type,from_factory_id,id from user_info_list where  id =?', [decoded.id], (err, results) => {
             if (err) return console.log(err.message)
             if (results.length == 1) {
                 const cache = results[0];
-                const {manager_name, user_type, from_factory_id} = cache;
+                const {manager_name, user_type, from_factory_id,id} = cache;
                 if (user_type == 1) {
                     conn.query('select count(*) count from apply_list where  is_agree = 1 ', (err, count) => {
                         if (err) return console.log(err.message)
@@ -65,7 +65,8 @@ const isLogin = function (body, ip, res) {
                             manager_name,
                             user_type,
                             un_read_count: count[0].count,
-                            from_factory_id
+                            from_factory_id,
+                            user_id:id
                         })
                     })
                 } else {
@@ -73,7 +74,8 @@ const isLogin = function (body, ip, res) {
                         code: 0,
                         manager_name,
                         user_type,
-                        from_factory_id
+                        from_factory_id,
+                        user_id:id
                     })
                 }
             } else {
@@ -869,7 +871,7 @@ const editImage = function (req, res) {
                 if (err) return console.log(err.message)
                 res.send({
                     code: 0,
-                    message: '删除已撤销',
+                    message: '删除申请已撤销',
                 });
                 addLogs(decoded.manager_name, decoded.id, '撤销删除', id, '图纸');
             })
@@ -1064,7 +1066,7 @@ const delSubImageApply = function (req, res) {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
-                message: isApply ? '申请已成功提交1' : '申请已撤销',
+                message: isApply  == 'true' ? '申请已成功提交' : '申请已撤销'
             });
             addLogs(decoded.manager_name, decoded.id, '申请移除', parent_id + "=>" + image_name, '子图');
         })

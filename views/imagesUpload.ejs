@@ -19,7 +19,10 @@
         </dl>
     </li>
 </ul>
-<div class="layui-upload">
+<div class="layui-upload" style="padding-top: 8px;padding-left: 8px">
+    <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" onclick="goBack()">
+        <i class="layui-icon layui-icon-left"></i>返回
+    </button>
     <button type="button" class="layui-btn layui-btn-normal" id="testList">选择多文件</button>
     <div class="layui-upload-list" style="max-width: 1000px;">
         <table class="layui-table">
@@ -43,6 +46,7 @@
     <button type="button" class="layui-btn" id="testListAction">开始上传</button>
 </div>
 <script src="/layui/layui.js"></script>
+<script src="viewTool.js"></script>
 <script>
     layui.$.ajaxSetup({cache: false})
     layui.use(function () {
@@ -154,6 +158,9 @@
             }
         });
     });
+    const  goBack = function (){
+        history.go(-1);
+    }
     const codeMessage = function (code, message) {
         if (code == 5) {
             layer.open({
