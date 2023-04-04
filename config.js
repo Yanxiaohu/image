@@ -228,7 +228,7 @@ const editUser = function (req, res) {
                             message: '密码修改成功！',
                         });
                     })
-                    addLogs(decoded.manager_name, decoded.id, '编辑', '密码','用户')
+                    addLogs(decoded.manager_name, decoded.id, '编辑', '密码', '用户')
                 }
             });
         } else if (decoded.user_type != 1) {
@@ -1053,17 +1053,18 @@ const delSubImage = function (req, res) {
 }
 
 const delSubImageApply = function (req, res) {
-    const {token, parent_id, image_id, image_name} = req.body;
+    const {token, parent_id, image_id, image_name, isApply} = req.body;
     const work = function (decoded) {
+        const applyStr = isApply == 'true' ? decoded.manager_name + ' 移除此图申请' : '';
         conn.query(`update image_bom_sub
                     set do_thing = ?
                     where image_id = ?
                       and parent_id = ?
-        `, [decoded.manager_name + ' 移除此图申请', image_id, parent_id], (err, results) => {
+        `, [applyStr, image_id, parent_id], (err, results) => {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
-                message: '申请已成功提交',
+                message: isApply ? '申请已成功提交1' : '申请已撤销',
             });
             addLogs(decoded.manager_name, decoded.id, '申请移除', parent_id + "=>" + image_name, '子图');
         })

@@ -38,6 +38,7 @@
 </div>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit">查看</a>
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="edit1">撤销</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">移除</a>
 </script>
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
@@ -152,7 +153,7 @@
                 , {field: 'up_time', title: '子图添加时间'}
                 , {field: 'do_thing', title: '子图添加时间'}
                 , {field: 'manager_name', title: '操作员', width: 80}
-                , {fixed: 'right', width: 150, align: 'center', toolbar: '#barDemo'}
+                , {fixed: 'right', width: 180, align: 'center', toolbar: '#barDemo'}
             ]]
             , done: function (res, page, count) {
                 if (res.code == 0) {
@@ -172,6 +173,32 @@
             const {parent_id, image_id, url, image_name} = obj.data;
             if (obj.event == 'edit') {
                 window.open(url, '_blank');
+            } else if (obj.event == 'edit1') {
+                const delLoading = layer.load(1);
+                layui.$.ajax({
+                    url: '/delSubImageApply', //提交接口
+                    type: 'post',
+                    data: {
+                        parent_id,
+                        image_id,
+                        image_name,
+                        token: localStorage.getItem('token'),
+                        isApply: false
+                    },
+                    success: function (res) {
+                        layer.close(delLoading);
+                        if (res.code == 0) {
+                            layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
+                                tableRender();
+                            });
+                        } else {
+                            codeMessage(res.code, res.message)
+                        }
+                    },
+                    error: function (mas, textStatus, errorThrown) {
+                        layer.msg("请求失败");
+                    }
+                });
             } else {
                 if (user_type == 1 || user_type == 3) {
                     const message = '真的要移除子图' + '<label style="color: darkred">' + image_name + '</label>' + '吗？';
@@ -204,7 +231,13 @@
                         layui.$.ajax({
                             url: '/delSubImageApply', //提交接口
                             type: 'post',
-                            data: {parent_id, image_id, image_name, token: localStorage.getItem('token')},
+                            data: {
+                                parent_id,
+                                image_id,
+                                image_name,
+                                token: localStorage.getItem('token'),
+                                isApply: true
+                            },
                             success: function (res) {
                                 layer.close(delLoading);
                                 layer.close(index);
@@ -238,7 +271,7 @@
                     break;
                 case 'edit':
                     layer.open({
-                        title: '添加子图',
+                        title: '编辑主图信息',
                         type: 1,
                         content: layui.$('#editModelID') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                     });
@@ -385,6 +418,8 @@
         <div class="layui-input-block">
             <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
         </div>
+        <input type="text" name="image_id" placeholder="请输入" autocomplete="off" class="layui-input layui-hide">
+        <input type="text" name="parent_id" placeholder="请输入" autocomplete="off" class="layui-input layui-hide">
     </div>
     <div class="layui-form-item">
         <div class="layui-input-block" style="margin-top: 100px">
@@ -466,28 +501,32 @@
 
     layui.form.on('submit(edit_image_submit)', function (data) {
         const loadStart = layer.load();
-        layui.$.ajax({
-            url: '/editImage', //提交接口
-            type: 'post',
-            data: {
-                id: getQueryString('id'),
-                note: data.field.note,
-                open: data.field.open,
-                token: localStorage.getItem('token')
-            },
-            success: function (res) {
-                layer.close(loadStart);
-                if (res.code == 0) {
-                    window.location.reload();
-                } else {
-                    codeMessage(res.code, res.message)
+        if (!data.field.image_id) {
+            layui.$.ajax({
+                url: '/editImage', //提交接口
+                type: 'post',
+                data: {
+                    id: getQueryString('id'),
+                    note: data.field.note,
+                    open: data.field.open,
+                    token: localStorage.getItem('token')
+                },
+                success: function (res) {
+                    layer.close(loadStart);
+                    if (res.code == 0) {
+                        layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
+                            tableRender();
+                        });
+                    } else {
+                        codeMessage(res.code, res.message)
+                    }
+                },
+                error: function (mas, textStatus, errorThrown) {
+                    layer.close(loadStart);
+                    layer.msg('网络错误，请联系管理员');
                 }
-            },
-            error: function (mas, textStatus, errorThrown) {
-                layer.close(loadStart);
-                layer.msg('网络错误，请联系管理员');
-            }
-        });
+            });
+        }
         return false;
     });
 </script>
