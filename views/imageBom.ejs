@@ -27,6 +27,11 @@
     </ul>
     <script type="text/html" id="toolbarDemo">
         <div class="layui-btn-container layui-inline">
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" onclick="goBack()">
+                <i class="layui-icon layui-icon-left"></i>返回
+            </button>
+        </div>
+        <div class="layui-btn-container layui-inline">
             <button class="layui-btn layui-btn-sm" lay-event="add">添加子图</button>
         </div>
         图纸<span style="color: darkred;font-size: 18px" id="image_name_id"></span>的子图
@@ -345,7 +350,9 @@
         ;
         return null;
     }
-
+const  goBack = function (){
+        history.go(-1);
+    }
 </script>
 <form class="layui-form" lay-filter="infoMadel" style="margin-top: 15px;margin-right: 15px;display: none" action=""
       id="infoMadelID">

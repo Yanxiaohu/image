@@ -379,7 +379,7 @@ const getImages = function (req, res) {
                                   image_info_list i
                                   INNER JOIN factory_info_list f
                               ON i.from_factory_id = f.id`;
-        const limit = `order by do_thing desc, id desc limit ${cachePage}, ${cacheLimit}`;
+        let limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
         let likeData = '';
         let bomStr = isBom == 'on' ? 'where i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
         if (editor) {
@@ -389,6 +389,7 @@ const getImages = function (req, res) {
                 likeData = `where from_factory_id = ${decoded.from_factory_id} and image_name like"%${image_name}%"`
             }
             bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
+            limit = `order by do_thing desc, id desc limit ${cachePage}, ${cacheLimit}`;
         } else if (image_name == '' && from_factory_id != '') {
             likeData = `where from_factory_id = ${cache_from_factory_id}`
             bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
@@ -402,7 +403,6 @@ const getImages = function (req, res) {
 
         ImageListSql = `${ImageListSql} ${likeData} ${bomStr} ${limit}`
         imagesCountSql = `${imagesCountSql} ${bomStr} ${likeData}`
-        console.log(ImageListSql);
         conn.query(ImageListSql, (err, results) => {
             if (err) return console.log(err.message)
             conn.query(imagesCountSql, (err, count) => {
@@ -865,7 +865,7 @@ const editImage = function (req, res) {
                 addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
             })
         } else {
-            conn.query('update image_info_list set note=?, do_thing=? where id=?', [note, '', id], (err, results) => {
+            conn.query('update image_info_list set note=?, do_thing=? where id=?', [note, null, id], (err, results) => {
                 if (err) return console.log(err.message)
                 res.send({
                     code: 0,
@@ -1055,7 +1055,7 @@ const delSubImage = function (req, res) {
 const delSubImageApply = function (req, res) {
     const {token, parent_id, image_id, image_name, isApply} = req.body;
     const work = function (decoded) {
-        const applyStr = isApply == 'true' ? decoded.manager_name + ' 移除此图申请' : '';
+        const applyStr = isApply == 'true' ? decoded.manager_name + ' 移除此图申请' : null;
         conn.query(`update image_bom_sub
                     set do_thing = ?
                     where image_id = ?
