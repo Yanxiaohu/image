@@ -515,7 +515,7 @@
                     layer.close(loadStart);
                     if (res.code == 0) {
                         layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
-                            tableRender();
+                            window.location.reload();
                         });
                     } else {
                         codeMessage(res.code, res.message)
