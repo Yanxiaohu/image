@@ -1081,7 +1081,7 @@ const delImageApply = function (req, res) {
                 code: 0,
                 message: '申请已提交',
             });
-            addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
+            (decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
         })
     }
     verifyToken(token, req.ip, res, work);
