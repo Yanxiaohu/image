@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>图纸管理</title>
+    <link rel ="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
@@ -157,7 +158,7 @@
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name: image_name, isBom, editor: true, token: localStorage.getItem('token')}
+            , where: {image_name: image_name,isBom, editor: true, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {field: 'id', title: 'ID', width: 80}
                 , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId'}
@@ -259,9 +260,7 @@
                         success: function (res) {
                             layer.close(loadStart);
                             if (res.code == 0) {
-                                layer.msg(JSON.stringify(res.message), {icon: 1}, function () {
-                                    tableRender();
-                                });
+                               window.location.reload();
                             } else {
                                 codeMessage(res.code, res.message)
                             }

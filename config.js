@@ -59,7 +59,7 @@ const isLogin = function (body, ip, res) {
                 const cache = results[0];
                 const {manager_name, user_type, from_factory_id, id} = cache;
                 if (user_type == 3) {
-                    conn.query('select count(*) count from image_info_list where  !ISNULL(do_thing)  AND from_factory_id = ? ', [from_factory_id], (err, count) => {
+                    conn.query('select count(*) count from image_info_list where  !ISNULL(do_thing)  AND from_factory_id = ? ', [decoded.from_factory_id], (err, count) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -385,12 +385,21 @@ const getImages = function (req, res) {
         let limit = `order by id desc limit ${cachePage}, ${cacheLimit}`;
         let likeData = '';
         let bomStr = isBom == 'on' ? 'where i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
-        if (editor) {
-            if (image_name == '') {
-                likeData = `where from_factory_id = ${decoded.from_factory_id}`
-            } else {
-                likeData = `where from_factory_id = ${decoded.from_factory_id} and image_name like"%${image_name}%"`
+        if (editor == 'true') {
+            if (decoded.user_type ==1){
+                if (image_name == '') {
+                    likeData = ``
+                } else {
+                    likeData = `where image_name like"%${image_name}%"`
+                }
+            }else {
+                if (image_name == '') {
+                    likeData = `where from_factory_id = ${decoded.from_factory_id}`
+                } else {
+                    likeData = `where from_factory_id = ${decoded.from_factory_id} and image_name like"%${image_name}%"`
+                }
             }
+
             bomStr = isBom == 'on' ? 'and i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
             limit = `order by do_thing desc, id desc limit ${cachePage}, ${cacheLimit}`;
         } else if (image_name == '' && from_factory_id != '') {
