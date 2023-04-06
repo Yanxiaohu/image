@@ -56,9 +56,9 @@ const isLogin = function (body, ip, res) {
             if (err) return console.log(err.message)
             if (results.length == 1) {
                 const cache = results[0];
-                const {manager_name, user_type, from_factory_id,id} = cache;
-                if (user_type == 1) {
-                    conn.query('select count(*) count from apply_list where  is_agree = 1 ', (err, count) => {
+                const {manager_name, user_type, from_factory_id, id} = cache;
+                if (user_type == 3) {
+                    conn.query('select count(*) count from image_info_list where  !ISNULL(do_thing)  AND from_factory_id = ? ', [from_factory_id], (err, count) => {
                         if (err) return console.log(err.message)
                         res.send({
                             code: 0,
@@ -66,7 +66,7 @@ const isLogin = function (body, ip, res) {
                             user_type,
                             un_read_count: count[0].count,
                             from_factory_id,
-                            user_id:id
+                            user_id: id
                         })
                     })
                 } else {
@@ -75,7 +75,7 @@ const isLogin = function (body, ip, res) {
                         manager_name,
                         user_type,
                         from_factory_id,
-                        user_id:id
+                        user_id: id
                     })
                 }
             } else {
@@ -1066,7 +1066,7 @@ const delSubImageApply = function (req, res) {
             if (err) return console.log(err.message)
             res.send({
                 code: 0,
-                message: isApply  == 'true' ? '申请已成功提交' : '申请已撤销'
+                message: isApply == 'true' ? '申请已成功提交' : '申请已撤销'
             });
             addLogs(decoded.manager_name, decoded.id, '申请移除', parent_id + "=>" + image_name, '子图');
         })

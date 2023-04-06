@@ -36,7 +36,7 @@
         </div>
         图纸<span style="color: darkred;font-size: 18px" id="image_name_id"></span>的子图
         <div class="layui-btn-container layui-inline" style="float: right">
-            <button class="layui-btn layui-btn-sm" lay-event="edit">编辑</button>
+            <button class="layui-btn layui-btn-sm" lay-event="edit">编辑备注</button>
         </div>
     </script>
     <table id="demo" lay-filter="test" style="width: 100%"></table>
@@ -427,12 +427,6 @@ const  goBack = function (){
         <div class="layui-input-block">
             <input type="text" name="note" placeholder="请输入" autocomplete="off" class="layui-input" id="inputid">
         </div>
-        <label class="layui-form-label">清除申请</label>
-        <div class="layui-input-block">
-            <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
-        </div>
-        <input type="text" name="image_id" placeholder="请输入" autocomplete="off" class="layui-input layui-hide">
-        <input type="text" name="parent_id" placeholder="请输入" autocomplete="off" class="layui-input layui-hide">
     </div>
     <div class="layui-form-item">
         <div class="layui-input-block" style="margin-top: 100px">
@@ -514,14 +508,12 @@ const  goBack = function (){
 
     layui.form.on('submit(edit_image_submit)', function (data) {
         const loadStart = layer.load();
-        if (!data.field.image_id) {
             layui.$.ajax({
                 url: '/editImage', //提交接口
                 type: 'post',
                 data: {
                     id: getQueryString('id'),
                     note: data.field.note,
-                    open: data.field.open,
                     token: localStorage.getItem('token')
                 },
                 success: function (res) {
@@ -539,7 +531,6 @@ const  goBack = function (){
                     layer.msg('网络错误，请联系管理员');
                 }
             });
-        }
         return false;
     });
 </script>
