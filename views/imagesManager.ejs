@@ -10,8 +10,11 @@
 <div>
     <ul class="layui-nav">
         <li class="layui-nav-item"><a href="/imagesShow">图库</a></li>
-        <li class="layui-nav-item layui-this" id="imageManager"><a href="/imagesManager">图纸管理</a></li>
-        <li class="layui-nav-item" id="userManager" style="display: none"><a href="/users">用户管理</a></li>
+        <li class="layui-nav-item layui-this" id="imageManager">
+            <a href="/imagesManager">图纸管理
+                <span class="layui-badge-dot" id="imageManagerBadge" style="display: none"></span>
+            </a>
+        </li>        <li class="layui-nav-item" id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item" id="actionsLogs" style="display: none;"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
@@ -96,6 +99,9 @@
                         document.getElementById('userManager').style.display = 'inline-block';
                         document.getElementById('actionsLogs').style.display = 'inline-block';
                         star = 'layui-icon-rate-solid';
+                    }
+                    if (res.un_read_count > 0) {
+                        document.getElementById('imageManagerBadge').style.display = 'inline-block';
                     }
                     document.getElementById('manager_name').innerHTML = '<i class="layui-icon ' + star + '"></i> ' + res.manager_name;
                     tableRender();

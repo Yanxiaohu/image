@@ -13,7 +13,7 @@ const formidable = require('formidable');
 const {trimZ} = require("./tool");
 const secret = 'YanchenImageManager';
 /** 登录验证 **/
-const login = function (body, ip, res) {
+const login = function (body, req, res) {
     const {username, password} = body;
     conn.query(`select manager_name, id, user_type, username, times, is_work, from_factory_id
                 from user_info_list
@@ -28,6 +28,7 @@ const login = function (body, ip, res) {
             }
             res.json(result);
         } else {
+            const ip = req.ip;
             const cache = results[0];
             if (cache.is_work === 1) {
                 const rule = {...cache};

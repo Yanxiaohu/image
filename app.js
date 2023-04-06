@@ -23,7 +23,7 @@ const {
 app.use(bodyParser.urlencoded({extends: true}))
 
 app.post('/login', function (req, res) {
-    login(req.body, req.ip, res);
+    login(req.body, req, res);
 })
 
 app.get('/isLogin', function (req, res) {
