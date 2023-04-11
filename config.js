@@ -240,7 +240,6 @@ const editUser = function (req, res) {
                 message: '您已经没有权限浏览该页面'
             });
         } else {
-            console.log(username, editID);
             conn.query('select * from user_info_list where username = ? and id != ?', [username, editID], (err, results) => {
                 if (results.length == 0) {
                     conn.query('update user_info_list set username=?,password = ?,manager_name = ?,user_type = ?,workshop_id=?,from_factory_id=?,is_work=? where id=?', [username, password, manager_name, user_type, workshop_id, from_factory_id, is_work, editID * 1], (err, results) => {
@@ -386,13 +385,13 @@ const getImages = function (req, res) {
         let likeData = '';
         let bomStr = isBom == 'on' ? 'where i.id = (SELECT parent_id FROM image_bom_sub WHERE !ISNULL(parent_id) GROUP  BY parent_id)' : '';
         if (editor == 'true') {
-            if (decoded.user_type ==1){
+            if (decoded.user_type == 1) {
                 if (image_name == '') {
                     likeData = ``
                 } else {
                     likeData = `where image_name like"%${image_name}%"`
                 }
-            }else {
+            } else {
                 if (image_name == '') {
                     likeData = `where from_factory_id = ${decoded.from_factory_id}`
                 } else {
@@ -865,7 +864,7 @@ const imageWithID = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const editImage = function (req, res) {
-    const {id, note, open, token} = req.body;
+    const {id, note, open, token, image_name} = req.body;
     const work = function (decoded) {
         if (open != 'on') {
             conn.query('update image_info_list set note=? where id=?', [note, id], (err, results) => {
@@ -874,7 +873,7 @@ const editImage = function (req, res) {
                     code: 0,
                     message: '图片编辑成功',
                 });
-                addLogs(decoded.manager_name, decoded.id, '编辑', id, '图纸');
+                addLogs(decoded.manager_name, decoded.id, '编辑', image_name, '图纸');
             })
         } else {
             conn.query('update image_info_list set note=?, do_thing=? where id=?', [note, null, id], (err, results) => {
