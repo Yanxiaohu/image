@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>车间/科室/部门</title>
-    <link rel ="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
@@ -134,7 +134,11 @@
             , where: {token: localStorage.getItem('token'), from_factory_id: from_factory_id}
             , defaultToolbar: []
             , cols: [[ //表头
-                {field: 'id', title: 'ID', width: 80}
+                {
+                    field: 'id', title: 'ID', width: 0, templet: function (d) {
+                        return d.LAY_INDEX;
+                    }
+                }
                 , {field: 'workshop', title: '部门名称', width: 180}
                 , {field: 'from_factory', title: '所属模块', width: 180}
                 , {field: 'manager_name', title: '操作员', width: 100}
