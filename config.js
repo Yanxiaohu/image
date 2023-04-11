@@ -882,7 +882,7 @@ const editImage = function (req, res) {
                     code: 0,
                     message: '删除申请已撤销',
                 });
-                addLogs(decoded.manager_name, decoded.id, '撤销删除', id, '图纸');
+                addLogs(decoded.manager_name, decoded.id, '撤销删除', image_name, '图纸');
             })
         }
     }
@@ -1093,7 +1093,7 @@ const delImageApply = function (req, res) {
                 code: 0,
                 message: '申请已提交',
             });
-            (decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
+            addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
         })
     }
     verifyToken(token, req.ip, res, work);

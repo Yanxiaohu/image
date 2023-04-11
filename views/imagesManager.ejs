@@ -245,7 +245,7 @@
             } else if (event == 'edit') {
                 window.open(data.url, '_blank');
             } else if (event == 'edit1') {
-                const {do_thing, note, id} = obj.data;
+                const {do_thing, note, id,image_name} = obj.data;
                 if (user_type == 1 || user_type == 3 || do_thing.indexOf(manager_name) != -1) {
                     const loadStart = layer.load();
                     layui.$.ajax({
@@ -254,6 +254,7 @@
                         data: {
                             id,
                             note,
+                            image_name,
                             open: 'on',
                             token: localStorage.getItem('token')
                         },
