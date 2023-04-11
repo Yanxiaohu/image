@@ -158,7 +158,11 @@
             , toolbar: '#toolbarDemo'
             , where: {token: localStorage.getItem('token'), id: getQueryString('id')}
             , cols: [[ //表头
-                {field: 'id', title: 'ID', width: 80}
+                {
+                    field: 'id', title: 'ID', width: 0, templet: function (d) {
+                        return d.LAY_INDEX;
+                    }
+                }
                 , {field: 'image_name', title: '子图名称'}
                 , {field: 'from_factory', title: '所属模块'}
                 , {field: 'up_time', title: '子图添加时间'}
@@ -516,7 +520,7 @@
             type: 'post',
             data: {
                 id: getQueryString('id'),
-                image_name:image_name,
+                image_name: image_name,
                 note: data.field.note,
                 token: localStorage.getItem('token')
             },

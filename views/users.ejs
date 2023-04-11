@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>用户管理</title>
-    <link rel ="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
@@ -41,14 +41,16 @@
     <div class="layui-form-item">
         <label class="layui-form-label">账号</label>
         <div class="layui-input-inline">
-            <input type="text" name="username" required lay-verify="required" placeholder="请输入账号" autocomplete="off"
+            <input type="text" name="username" required lay-verify="required" placeholder="请输入账号"
+                   autocomplete="off"
                    class="layui-input">
         </div>
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">密码</label>
         <div class="layui-input-inline">
-            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off"
+            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码"
+                   autocomplete="off"
                    defaultValue="123456"
                    class="layui-input">
         </div>
@@ -177,7 +179,11 @@
             , where: {token: localStorage.getItem('token')}
             , defaultToolbar: []
             , cols: [[ //表头
-                {field: 'id', title: 'ID', width: 0}
+                {
+                    field: 'id', title: 'ID', width: 0, templet: function (d) {
+                        return d.LAY_INDEX;
+                    }
+                }
                 , {field: 'username', title: '登录用户名', width: 120}
                 , {field: 'user_type', title: '用户类型', width: 100}
                 , {field: 'from_factory', title: '模块', width: 120}
@@ -244,7 +250,7 @@
                     layui.$.ajax({
                         url: '/delUser', //提交接口
                         type: 'post',
-                        data: {del_id: data.id,manager_name:data.manager_name, token: localStorage.getItem('token')},
+                        data: {del_id: data.id, manager_name: data.manager_name, token: localStorage.getItem('token')},
                         success: function (res) {
                             layer.close(delLoading);
                             layer.close(index);

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>图纸管理</title>
-    <link rel ="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="stylesheet" href="/layui/css/layui.css">
 </head>
 <body>
@@ -15,7 +15,8 @@
             <a href="/imagesManager">图纸管理
                 <span class="layui-badge-dot" id="imageManagerBadge" style="display: none"></span>
             </a>
-        </li>        <li class="layui-nav-item" id="userManager" style="display: none"><a href="/users">用户管理</a></li>
+        </li>
+        <li class="layui-nav-item" id="userManager" style="display: none"><a href="/users">用户管理</a></li>
         <li class="layui-nav-item" id="actionsLogs" style="display: none;"><a href="/actionsLogs">操作日志</a></li>
         <li class="layui-nav-item" style="float: right">
             <a href="javascript:;"><span id="manager_name"></span></a>
@@ -158,12 +159,16 @@
             elem: '#demo'
             , url: '/getImages' //数据接口
             , page: true //开启分页
-            , where: {image_name: image_name,isBom, editor: true, token: localStorage.getItem('token')}
+            , where: {image_name: image_name, isBom, editor: true, token: localStorage.getItem('token')}
             , cols: [[ //表头
-                {field: 'id', title: 'ID', width: 80}
-                , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId',width: 180}
-                , {field: 'note', title: '备注', style: 'color: darkmagenta;font-weight: 600;',width: 160}
-                , {field: 'from_factory', title: '所属模块',width: 86}
+                {
+                    field: 'id', title: 'ID', width: 0, templet: function (d) {
+                        return d.LAY_INDEX;
+                    }
+                }
+                , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId', width: 180}
+                , {field: 'note', title: '备注', style: 'color: darkmagenta;font-weight: 600;', width: 260}
+                , {field: 'from_factory', title: '所属模块', width: 86}
                 , {field: 'up_time', title: '上传时间'}
                 , {field: 'do_thing', title: '操作申请', toolbar: '#doThing', width: 168}
                 , {field: 'sub_count', title: '子图量', width: 80}
@@ -245,7 +250,7 @@
             } else if (event == 'edit') {
                 window.open(data.url, '_blank');
             } else if (event == 'edit1') {
-                const {do_thing, note, id,image_name} = obj.data;
+                const {do_thing, note, id, image_name} = obj.data;
                 if (user_type == 1 || user_type == 3 || do_thing.indexOf(manager_name) != -1) {
                     const loadStart = layer.load();
                     layui.$.ajax({
@@ -261,7 +266,7 @@
                         success: function (res) {
                             layer.close(loadStart);
                             if (res.code == 0) {
-                               window.location.reload();
+                                window.location.reload();
                             } else {
                                 codeMessage(res.code, res.message)
                             }
