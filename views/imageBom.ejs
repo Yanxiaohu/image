@@ -223,7 +223,13 @@
                         layui.$.ajax({
                             url: '/delSubImage', //提交接口
                             type: 'post',
-                            data: {parent_id, image_id, token: localStorage.getItem('token')},
+                            data: {
+                                parent_id,
+                                image_id,
+                                parent_image_name,
+                                sub_image_name: image_name,
+                                token: localStorage.getItem('token')
+                            },
                             success: function (res) {
                                 layer.close(delLoading);
                                 layer.close(index);
@@ -528,7 +534,7 @@
             type: 'post',
             data: {
                 id: getQueryString('id'),
-                image_name: image_name,
+                image_name: parent_image_name,
                 note: data.field.note,
                 token: localStorage.getItem('token')
             },

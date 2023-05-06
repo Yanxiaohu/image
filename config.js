@@ -873,7 +873,7 @@ const editImage = function (req, res) {
                     code: 0,
                     message: '图片编辑成功',
                 });
-                addLogs(decoded.manager_name, decoded.id, '编辑', image_name, '图纸');
+                addLogs(decoded.manager_name, decoded.id, '编辑备注', image_name + '(' + note + ')', '图纸');
             })
         } else {
             conn.query('update image_info_list set note=?, do_thing=? where id=?', [note, null, id], (err, results) => {
@@ -1037,7 +1037,7 @@ const addSubImage = function (req, res) {
 }
 
 const delSubImage = function (req, res) {
-    const {token, parent_id, image_id} = req.body;
+    const {token, parent_id, image_id, parent_image_name, sub_image_name} = req.body;
     const work = function (decoded) {
         conn.query(`delete
                     from image_bom_sub
@@ -1057,7 +1057,7 @@ const delSubImage = function (req, res) {
                                 from image_bom_sub
                                 where image_id = ?`, [parent_id], () => {
                     })
-                    addLogs(decoded.manager_name, decoded.id, '删除', image_id + "=>" + parent_id, '子图');
+                    addLogs(decoded.manager_name, decoded.id, '删除', parent_image_name + "=>" + sub_image_name, '子图');
                 }
             });
         })
