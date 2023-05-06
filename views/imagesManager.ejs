@@ -162,15 +162,15 @@
             , where: {image_name: image_name, isBom, editor: true, token: localStorage.getItem('token')}
             , cols: [[ //表头
                 {
-                    field: 'id', title: 'ID', width: 0, templet: function (d) {
+                    field: 'id', title: 'ID', width: 80, templet: function (d) {
                         return d.LAY_INDEX;
                     }
                 }
-                , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId', width: 180}
+                , {field: 'image_name', title: '图纸编号', toolbar: '#imageNameId', width: 192}
                 , {field: 'note', title: '备注', style: 'color: darkmagenta;font-weight: 600;', width: 260}
                 , {field: 'from_factory', title: '所属模块', width: 86}
                 , {field: 'up_time', title: '上传时间'}
-                , {field: 'do_thing', title: '操作申请', toolbar: '#doThing', width: 168}
+                , {field: 'do_thing', title: '操作申请', toolbar: '#doThing', width: 172}
                 , {field: 'sub_count', title: '子图量', width: 80}
                 , {field: 'manager_name', title: '操作员', width: 80}
                 , {fixed: 'right', width: 180, align: 'center', toolbar: '#barDemo'}
@@ -226,7 +226,12 @@
                         layui.$.ajax({
                             url: '/delImageApply', //提交接口
                             type: 'post',
-                            data: {del_id: data.id, image_name: data.image_name, token: localStorage.getItem('token')},
+                            data: {
+                                del_id: data.id,
+                                image_name: data.image_name,
+                                manager_name: data.manager_name,
+                                token: localStorage.getItem('token')
+                            },
                             success: function (res) {
                                 layer.close(delLoading);
                                 layer.close(index);
@@ -281,8 +286,15 @@
                     layer.msg(JSON.stringify('你没有权限撤销，请联系部长/管理员/申请者本人'), {icon: 2});
                 }
             } else {
-                const url = '/imageBom?id=' + data.id;
-                window.location.href = url;
+                if (user_type == 1 || user_type == 3 || manager_name == obj.data.manager_name) {
+                    const url = '/imageBom?id=' + data.id;
+                    window.location.href = url;
+                } else {
+                    layer.open({
+                        title: ''
+                        , content: '您没有权限，操作该图纸'
+                    });
+                }
             }
         });
     }

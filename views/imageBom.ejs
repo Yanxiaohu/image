@@ -55,7 +55,7 @@
 <!-- 引入 layui.js 的 <script> 标签最好放置在 html 末尾 -->
 <script src="/layui/layui.js"></script>
 <script>
-    let user_type = 1, note = '', image_name;
+    let user_type = 1, note = '', parent_image_name, sub_image_name;
     layui.$.ajaxSetup({cache: false})
     layui.use(function () {
         const layer = layui.layer;
@@ -310,7 +310,7 @@
                 }
                 document.getElementById('image_name_id').innerText = res.image_name + str;
                 note = res.note;
-                image_name = res.image_name;
+                parent_image_name = res.image_name;
             }
         });
     }
@@ -432,7 +432,7 @@
     <div class="layui-form-item">
         <label class="layui-form-label">备注信息</label>
         <div class="layui-input-block">
-            <input type="text" name="note" placeholder="请输入" autocomplete="off" class="layui-input" id="inputid">
+            <input type="text" name="note" placeholder="请输入" autocomplete="off" class="layui-input">
         </div>
     </div>
     <div class="layui-form-item">
@@ -484,10 +484,16 @@
             form.render("select");
         });
     }
-
+    layui.form.on('select(image_add)', function (data) {
+        for (let i = 0; i < data.elem.length; i++) {
+            const dict = data.elem[i];
+            if (dict.value == data.value) {
+                sub_image_name = dict.innerText;
+            }
+        }
+    })
     //监听提交
     layui.form.on('submit(add_image_submit)', function (data) {
-        console.log(data.field);
         const loadStart = layer.load();
         layui.$.ajax({
             url: '/addSubImage', //提交接口
@@ -495,12 +501,14 @@
             data: {
                 parent_id: getQueryString('id'),
                 image_id: data.field.id,
+                parent_image_name,
+                sub_image_name,
                 token: localStorage.getItem('token')
             },
             success: function (res) {
                 layer.close(loadStart);
                 if (res.code == 0) {
-                    window.location.reload();
+                    // window.location.reload();
                 } else {
                     codeMessage(res.code, res.message)
                 }

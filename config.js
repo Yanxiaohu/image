@@ -994,7 +994,9 @@ const selectInfoFromParentID = function (req, res) {
     verifyToken(token, req.ip, res, work);
 }
 const addSubImage = function (req, res) {
-    const {image_id, parent_id, token} = req.body;
+    const {
+        image_id, parent_id, token, parent_image_name, sub_image_name
+    } = req.body;
     const work = function (decoded) {
         conn.query(`SELECT COUNT(*) count
                     FROM image_bom_sub
@@ -1020,7 +1022,7 @@ const addSubImage = function (req, res) {
                         code: 0,
                         message: '操作成功'
                     });
-                    addLogs(decoded.manager_name, decoded.id, '添加', image_id + "=>" + parent_id, '子图');
+                    addLogs(decoded.manager_name, decoded.id, '添加', parent_image_name + "=>" + sub_image_name, '子图');
                 })
             } else {
                 res.send({
@@ -1084,17 +1086,24 @@ const delSubImageApply = function (req, res) {
 }
 
 const delImageApply = function (req, res) {
-    const {del_id, image_name, token} = req.body;
+    const {del_id, image_name, manager_name, token} = req.body;
     const work = function (decoded) {
         const do_thing = decoded.manager_name + '申请删除';
-        conn.query('update image_info_list set do_thing=? where id=?', [do_thing, del_id], (err, results) => {
-            if (err) return console.log(err.message)
+        if (manager_name == decoded.manager_name) {
+            conn.query('update image_info_list set do_thing=? where id=?', [do_thing, del_id], (err, results) => {
+                if (err) return console.log(err.message)
+                res.send({
+                    code: 0,
+                    message: '申请已提交',
+                });
+                addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
+            })
+        } else {
             res.send({
-                code: 0,
-                message: '申请已提交',
+                code: 3,
+                message: '不是本人上传，不能删除该图纸',
             });
-            addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
-        })
+        }
     }
     verifyToken(token, req.ip, res, work);
 }
@@ -1151,7 +1160,6 @@ const formatDict = function (dict) {
     const title = image_name + noteStr;
     return {title, id: image_id, href: url, spread: true, parent_id};
 }
-
 
 module.exports = {
     login,
