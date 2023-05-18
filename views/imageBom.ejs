@@ -514,7 +514,7 @@
             success: function (res) {
                 layer.close(loadStart);
                 if (res.code == 0) {
-                    // window.location.reload();
+                    window.location.reload();
                 } else {
                     codeMessage(res.code, res.message)
                 }
