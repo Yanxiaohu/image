@@ -368,6 +368,7 @@ const getImages = function (req, res) {
                                    i.url,
                                    i.up_time,
                                    i.manager_name,
+                                   i.manager_id,
                                    f.from_factory,
                                    i.note,
                                    i.do_thing,
@@ -419,6 +420,17 @@ const getImages = function (req, res) {
             conn.query(imagesCountSql, (err, count) => {
                 if (err) return console.log(err.message)
                 let result = {};
+                for (let i = 0; i < results.length; i++) {
+                    let dict = results[i]
+                    if (decoded.user_type == 1 || decoded.user_type == 3 || decoded.id == dict.manager_id) {
+                        dict.is_del = true;
+                        dict.is_edit = true;
+                    } else {
+                        dict.is_del = false;
+                        dict.is_edit = false;
+                    }
+                    results[i] = dict;
+                }
                 result = {
                     code: 0,
                     count: count[0].count,
@@ -1087,25 +1099,37 @@ const delSubImageApply = function (req, res) {
 
 const delImageApply = function (req, res) {
     const {del_id, image_name, manager_name, token} = req.body;
-    const work = function (decoded) {
-        const do_thing = decoded.manager_name + '申请删除';
-        if (manager_name == decoded.manager_name) {
-            conn.query('update image_info_list set do_thing=? where id=?', [do_thing, del_id], (err, results) => {
-                if (err) return console.log(err.message)
-                res.send({
-                    code: 0,
-                    message: '申请已提交',
-                });
-                addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
-            })
+    conn.query(`SELECT COUNT(*) count
+                FROM image_bom_sub
+                WHERE parent_id = ? or image_id = ?`, [del_id, del_id], (err, result) => {
+        if (err) return console.log(err.message)
+        if (result[0].count <= 0) {
+            const work = function (decoded) {
+                const do_thing = decoded.manager_name + '申请删除';
+                if (manager_name == decoded.manager_name) {
+                    conn.query('update image_info_list set do_thing=? where id=?', [do_thing, del_id], (err, results) => {
+                        if (err) return console.log(err.message)
+                        res.send({
+                            code: 0,
+                            message: '申请已提交',
+                        });
+                        addLogs(decoded.manager_name, decoded.id, '申请删除', image_name, '图纸')
+                    })
+                } else {
+                    res.send({
+                        code: 3,
+                        message: '不是本人上传，不能删除该图纸',
+                    });
+                }
+            }
+            verifyToken(token, req.ip, res, work);
         } else {
             res.send({
                 code: 3,
-                message: '不是本人上传，不能删除该图纸',
+                message: '请删除二级树关联节点，再删除此图',
             });
         }
-    }
-    verifyToken(token, req.ip, res, work);
+    })
 }
 
 const selectTree = function (req, res) {
