@@ -143,7 +143,7 @@
                 //上传完毕回调
                 layer.closeAll('loading'); //关闭loading
                 if (res.code == 0) {
-                    // window.location.href = '';
+                    window.location.href = '';
                 } else {
                     codeMessage(res.code, '图纸' + '<span style="color: darkred">' + res.message + '</span>' + '已存在，请更改名字或删除源文件后上传');
                 }
